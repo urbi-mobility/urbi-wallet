@@ -8,50 +8,35 @@ import {
   Button,
   TextInput
 } from "react-native";
-import Web3 from "web3";
+import { NavigationScreenProps } from "react-navigation";
 
-const provider = Platform.select({
+export const defaultEndpoint = Platform.select({
   ios: "ws://localhost:8545",
   android: "ws://10.0.2.2:8545"
 });
 
-const envs = [provider, "custom address"];
+const envs = [defaultEndpoint, "custom address"];
 
-class MainScreen extends React.PureComponent<{}> {
+class MainScreen extends React.Component<NavigationScreenProps> {
+  static navigationOptions = {
+    title: "Super Crypto Wallet! 💣"
+  };
+
   state = {
     accounts: [],
     latest: "",
     error: "",
-    selectedNetwork: provider,
-    endpoint: provider,
+    selectedNetwork: defaultEndpoint,
+    endpoint: defaultEndpoint,
     web3: undefined
   };
 
-  constructor(props: {}) {
+  constructor(props: NavigationScreenProps) {
     super(props);
 
     this.onItemPicked = this.onItemPicked.bind(this);
     this.onTextChanged = this.onTextChanged.bind(this);
     this.onConnectPressed = this.onConnectPressed.bind(this);
-  }
-
-  renderGanacheOutput() {
-    return this.state.latest.length > 0 ? (
-      <View style={{ flex: 1 }}>
-        <Text style={styles.welcome}>Latest block is:</Text>
-        <Text style={styles.instructions}>{this.state.latest}</Text>
-        <Text style={styles.welcome}>Your accounts on ganache-cli:</Text>
-        <Text style={styles.instructions}>
-          {this.state.accounts.map(a => `${a}\n`)}
-        </Text>
-        <Text style={styles.welcome}>🤔</Text>
-      </View>
-    ) : (
-      <Text style={styles.welcome}>
-        Trying to connect to eth on {this.state.endpoint}, if you can read
-        this... maybe you haven't run ganache-cli?
-      </Text>
-    );
   }
 
   onItemPicked(itemValue: string) {
@@ -63,6 +48,17 @@ class MainScreen extends React.PureComponent<{}> {
   }
 
   onConnectPressed() {
+    let { endpoint } = this.state;
+    if (endpoint) {
+      endpoint = endpoint.trim().toLowerCase();
+      if (!endpoint.startsWith("ws")) {
+        endpoint = `ws://${endpoint}`;
+      }
+      this.props.navigation.navigate("Accounts", { endpoint });
+    }
+  }
+
+  onConnectSuperPressed() {
     try {
       let { endpoint } = this.state;
       if (endpoint) {
@@ -70,22 +66,6 @@ class MainScreen extends React.PureComponent<{}> {
         if (!endpoint.startsWith("ws")) {
           endpoint = `ws://${endpoint}`;
         }
-        console.log(`connecting to ${endpoint}`);
-        const web3 = new Web3(endpoint);
-        this.setState({ web3, endpoint });
-
-        web3.eth
-          .getBlock("latest")
-          .then(latest => this.setState({ latest: latest.hash }))
-          .catch(console.log);
-
-        web3.eth.getAccounts((error, res) => {
-          if (!error) {
-            this.setState({ accounts: res });
-          } else {
-            this.setState({ accounts: [error] });
-          }
-        });
       } else {
         console.log("endpoint not set, not doing anything");
       }
@@ -98,43 +78,38 @@ class MainScreen extends React.PureComponent<{}> {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>Super Crypto Wallet! 💣</Text>
-        {this.state.web3 ? (
-          this.renderGanacheOutput()
-        ) : (
-          <View style={{ flex: 1 }}>
-            <Text style={styles.welcome}>Connect to:</Text>
-            <Picker
-              selectedValue={this.state.selectedNetwork}
-              style={styles.picker}
-              onValueChange={this.onItemPicked}
-            >
-              {envs.map(env => (
-                <Picker.Item
-                  key={`opt-${env}`}
-                  label={env}
-                  value={env}
-                  color="green"
-                />
-              ))}
-            </Picker>
-            {this.state.selectedNetwork === "custom address" ? (
-              <TextInput
-                style={styles.textInput}
-                onChangeText={this.onTextChanged}
-                placeholder="A ws address to connect to"
-                placeholderTextColor="rgba(0, 255, 0, 0.4)"
-                value={this.state.endpoint}
+        <View style={{ flex: 1 }}>
+          <Text style={styles.welcome}>Connect to:</Text>
+          <Picker
+            selectedValue={this.state.selectedNetwork}
+            style={styles.picker}
+            onValueChange={this.onItemPicked}
+          >
+            {envs.map(env => (
+              <Picker.Item
+                key={`opt-${env}`}
+                label={env}
+                value={env}
+                color="green"
               />
-            ) : null}
-            <Button
-              onPress={this.onConnectPressed}
-              title="Connect!"
-              color="green"
-              accessibilityLabel="Learn more about this purple button"
+            ))}
+          </Picker>
+          {this.state.selectedNetwork === "custom address" ? (
+            <TextInput
+              style={styles.textInput}
+              onChangeText={this.onTextChanged}
+              placeholder="A ws address to connect to"
+              placeholderTextColor="rgba(0, 255, 0, 0.4)"
+              value={this.state.endpoint}
             />
-          </View>
-        )}
+          ) : null}
+          <Button
+            onPress={this.onConnectPressed}
+            title="Connect!"
+            color="green"
+            accessibilityLabel="Connect to the eth web socket"
+          />
+        </View>
         {this.state.error ? (
           <Text style={styles.error}>{this.state.error}</Text>
         ) : null}
@@ -148,21 +123,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     backgroundColor: "#000",
-    padding: 5,
-    paddingTop: 48
+    padding: 5
   },
   welcome: {
     fontSize: 20,
     textAlign: "center",
     margin: 10,
     color: "green"
-  },
-  instructions: {
-    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-    textAlign: "center",
-    lineHeight: 20,
-    color: "green",
-    margin: 3
   },
   picker: {
     height: 100,
