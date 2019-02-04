@@ -134,7 +134,9 @@ const styles = StyleSheet.create({
   picker: {
     height: 100,
     width: 400,
-    borderColor: "green"
+    justifyContent: "space-around",
+    borderColor: "green",
+    marginBottom: 20
   },
   textInput: {
     height: 40,
