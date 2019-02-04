@@ -23,12 +23,8 @@ class MainScreen extends React.Component<NavigationScreenProps> {
   };
 
   state = {
-    accounts: [],
-    latest: "",
-    error: "",
     selectedNetwork: defaultEndpoint,
-    endpoint: defaultEndpoint,
-    web3: undefined
+    endpoint: defaultEndpoint
   };
 
   constructor(props: NavigationScreenProps) {
@@ -54,24 +50,8 @@ class MainScreen extends React.Component<NavigationScreenProps> {
       if (!endpoint.startsWith("ws")) {
         endpoint = `ws://${endpoint}`;
       }
+      this.setState({ endpoint });
       this.props.navigation.navigate("Accounts", { endpoint });
-    }
-  }
-
-  onConnectSuperPressed() {
-    try {
-      let { endpoint } = this.state;
-      if (endpoint) {
-        endpoint = endpoint.trim().toLowerCase();
-        if (!endpoint.startsWith("ws")) {
-          endpoint = `ws://${endpoint}`;
-        }
-      } else {
-        console.log("endpoint not set, not doing anything");
-      }
-    } catch (error) {
-      console.log("error while connecting to web3: ", error);
-      this.setState({ error: `error from web3.js: '${error}'` });
     }
   }
 
@@ -110,9 +90,6 @@ class MainScreen extends React.Component<NavigationScreenProps> {
             accessibilityLabel="Connect to the eth web socket"
           />
         </View>
-        {this.state.error ? (
-          <Text style={styles.error}>{this.state.error}</Text>
-        ) : null}
       </View>
     );
   }

@@ -69,6 +69,9 @@ export default class AccountsScreen extends React.Component<
             this... maybe you haven't run ganache-cli?
           </Text>
         )}
+        {this.state.error ? (
+          <Text style={styles.error}>{this.state.error}</Text>
+        ) : null}
       </View>
     );
   }
