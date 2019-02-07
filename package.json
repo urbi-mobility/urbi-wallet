@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "crypto-browserify": "^3.12.0",
+    "eth-lightwallet": "^3.0.1",
     "expo": "^31.0.2",
     "node-libs-browser": "^2.2.0",
     "node-libs-react-native": "^1.0.3",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@types/assert": "^1.4.1",
+    "@types/eth-lightwallet": "^3.0.0",
     "@types/expo": "^30.0.0",
     "@types/pbkdf2": "^3.0.0",
     "@types/react": "^16.4.18",

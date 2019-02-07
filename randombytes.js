@@ -22,4 +22,9 @@ const randomBytes = (size, cb) => {
   }
   return bytes
 }
+
+const crypto = require("crypto");
+window.crypto = crypto;
+crypto.getRandomValues = getRandomValues;
+
 module.exports = randomBytes;

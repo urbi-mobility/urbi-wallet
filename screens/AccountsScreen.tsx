@@ -1,7 +1,8 @@
 import * as React from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View, ScrollView } from "react-native";
 import { NavigationScreenProps } from "react-navigation";
 import Web3 from "web3";
+import * as lightwallet from "eth-lightwallet";
 import { defaultEndpoint } from "./MainScreen";
 import { generateMnemonic, mnemonicToSeedHex } from "../crypto/bip39";
 
@@ -16,6 +17,7 @@ export default class AccountsScreen extends React.Component<
     accounts: [],
     latest: "",
     mnemonic: "",
+    mnemonicLightWallet: "",
     error: "",
     endpoint: defaultEndpoint,
     seed: "",
@@ -27,10 +29,8 @@ export default class AccountsScreen extends React.Component<
       "endpoint",
       defaultEndpoint
     );
-    const mnemonic = generateMnemonic(128);
-    const seed = mnemonicToSeedHex(mnemonic, "omfg it's a secret");
 
-    this.setState({ endpoint, mnemonic, seed }, () => {
+    this.setState({ endpoint }, () => {
       try {
         const web3 = new Web3(endpoint);
         this.setState({ web3 });
@@ -41,11 +41,16 @@ export default class AccountsScreen extends React.Component<
           .catch(console.log);
 
         web3.eth.getAccounts((error, res) => {
+          const mnemonic = generateMnemonic(128);
+          const seed = mnemonicToSeedHex(mnemonic, "omfg it's a secret");
+          const mnemonicLightWallet = lightwallet.keystore.generateRandomSeed();
+          let accounts;
           if (!error) {
-            this.setState({ accounts: res });
+            accounts = res;
           } else {
-            this.setState({ accounts: [error] });
+            accounts = [error];
           }
+          this.setState({ accounts, mnemonic, mnemonicLightWallet, seed });
         });
       } catch (error) {
         console.log("error while connecting to web3: ", error);
@@ -56,7 +61,10 @@ export default class AccountsScreen extends React.Component<
 
   render() {
     return (
-      <View style={styles.container}>
+      <ScrollView
+        style={{ backgroundColor: "#000" }}
+        contentContainerStyle={styles.container}
+      >
         {this.state.latest.length > 0 ? (
           <View>
             <Text style={styles.welcome}>Latest block is:</Text>
@@ -81,18 +89,22 @@ export default class AccountsScreen extends React.Component<
           ...which as an encrypted (with a super-strong password, too!) seed is
         </Text>
         <Text style={styles.instructions}>{this.state.seed}</Text>
+        <Text style={styles.welcome}>
+          And here's the same thing, but using eth-lightwallet
+        </Text>
+        <Text style={styles.instructions}>
+          {this.state.mnemonicLightWallet}
+        </Text>
         {this.state.error ? (
           <Text style={styles.error}>{this.state.error}</Text>
         ) : null}
-      </View>
+      </ScrollView>
     );
   }
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
     backgroundColor: "#000",
     padding: 5
   },
