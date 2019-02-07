@@ -3,6 +3,7 @@ import { Platform, StyleSheet, Text, View } from "react-native";
 import { NavigationScreenProps } from "react-navigation";
 import Web3 from "web3";
 import { defaultEndpoint } from "./MainScreen";
+import { generateMnemonic, mnemonicToSeedHex } from "../crypto/bip39";
 
 export default class AccountsScreen extends React.Component<
   NavigationScreenProps
@@ -14,8 +15,10 @@ export default class AccountsScreen extends React.Component<
   state = {
     accounts: [],
     latest: "",
+    mnemonic: "",
     error: "",
     endpoint: defaultEndpoint,
+    seed: "",
     web3: undefined
   };
 
@@ -24,9 +27,10 @@ export default class AccountsScreen extends React.Component<
       "endpoint",
       defaultEndpoint
     );
-    console.log(`connecting to ${endpoint}`);
+    const mnemonic = generateMnemonic(128);
+    const seed = mnemonicToSeedHex(mnemonic, "omfg it's a secret");
 
-    this.setState({ endpoint }, () => {
+    this.setState({ endpoint, mnemonic, seed }, () => {
       try {
         const web3 = new Web3(endpoint);
         this.setState({ web3 });
@@ -69,6 +73,14 @@ export default class AccountsScreen extends React.Component<
             this... maybe you haven't run ganache-cli?
           </Text>
         )}
+        <Text style={styles.welcome}>
+          Here's a random 12-word mnemonic, because why not?
+        </Text>
+        <Text style={styles.instructions}>{this.state.mnemonic}</Text>
+        <Text style={styles.welcome}>
+          ...which as an encrypted (with a super-strong password, too!) seed is
+        </Text>
+        <Text style={styles.instructions}>{this.state.seed}</Text>
         {this.state.error ? (
           <Text style={styles.error}>{this.state.error}</Text>
         ) : null}
