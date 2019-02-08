@@ -1,0 +1,26 @@
+{
+  "address": "",
+  "aaaanull": null,
+  "payload": {
+    "firstName": "",
+    "lastName": "",
+    "nationality": "IT",
+    "birthDate": "2018-1-22",
+    "birthCountry": "",
+    "birthProvince": "GE",
+    "birthLocality": "Arenzano",
+    "aaaanull": null,
+    "address": "",
+    "zip": "",
+    "city": "",
+    "country": "",
+    "phoneNumber": "",
+    "dlNumber": "",
+    "dlIssuer": "",
+    "dlIssueDate": "",
+    "dlExpirationDate": "",
+    "dlLevels": ["A", "B1"]
+  },
+  "signature": "",
+  "nonce": ""
+}

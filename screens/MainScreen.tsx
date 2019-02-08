@@ -1,21 +1,10 @@
 import * as React from "react";
-import {
-  StyleSheet,
-  Text,
-  Platform,
-  View,
-  Picker,
-  Button,
-  TextInput
-} from "react-native";
+import { Platform, StyleSheet, Text, View, ScrollView } from "react-native";
 import { NavigationScreenProps } from "react-navigation";
-
-export const defaultEndpoint = Platform.select({
-  ios: "ws://localhost:8545",
-  android: "ws://10.0.2.2:8545"
-});
-
-const envs = [defaultEndpoint, "custom address"];
+import * as lightwallet from "eth-lightwallet";
+import testIdentity from "../assets/testIdentity.json";
+import { mnemonicToSeedHex } from "../crypto/bip39";
+import { serialize } from "../util/jsonUtils";
 
 class MainScreen extends React.Component<NavigationScreenProps> {
   static navigationOptions = {
@@ -23,82 +12,41 @@ class MainScreen extends React.Component<NavigationScreenProps> {
   };
 
   state = {
-    selectedNetwork: defaultEndpoint,
-    endpoint: defaultEndpoint
+    mnemonic: "",
+    seed: ""
   };
 
-  constructor(props: NavigationScreenProps) {
-    super(props);
-
-    this.onItemPicked = this.onItemPicked.bind(this);
-    this.onTextChanged = this.onTextChanged.bind(this);
-    this.onConnectPressed = this.onConnectPressed.bind(this);
-  }
-
-  onItemPicked(itemValue: string) {
-    this.setState({ selectedNetwork: itemValue });
-  }
-
-  onTextChanged(text: string) {
-    this.setState({ endpoint: text });
-  }
-
-  onConnectPressed() {
-    let { endpoint } = this.state;
-    if (endpoint) {
-      endpoint = endpoint.trim().toLowerCase();
-      if (!endpoint.startsWith("ws")) {
-        endpoint = `ws://${endpoint}`;
-      }
-      this.setState({ endpoint });
-      this.props.navigation.navigate("Accounts", { endpoint });
-    }
+  componentDidMount() {
+    const mnemonic = lightwallet.keystore.generateRandomSeed();
+    const seed = mnemonicToSeedHex(mnemonic, "omfg it's a secret");
+    this.setState({ mnemonic, seed });
   }
 
   render() {
     return (
-      <View style={styles.container}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.welcome}>Connect to:</Text>
-          <Picker
-            selectedValue={this.state.selectedNetwork}
-            style={styles.picker}
-            onValueChange={this.onItemPicked}
-          >
-            {envs.map(env => (
-              <Picker.Item
-                key={`opt-${env}`}
-                label={env}
-                value={env}
-                color="green"
-              />
-            ))}
-          </Picker>
-          {this.state.selectedNetwork === "custom address" ? (
-            <TextInput
-              style={styles.textInput}
-              onChangeText={this.onTextChanged}
-              placeholder="A ws address to connect to"
-              placeholderTextColor="rgba(0, 255, 0, 0.4)"
-              value={this.state.endpoint}
-            />
-          ) : null}
-          <Button
-            onPress={this.onConnectPressed}
-            title="Connect!"
-            color="green"
-            accessibilityLabel="Connect to the eth web socket"
-          />
-        </View>
-      </View>
+      <ScrollView
+        style={{ backgroundColor: "#000" }}
+        contentContainerStyle={styles.container}
+      >
+        <Text style={styles.welcome}>
+          Here's a random 12-word mnemonic, because why not?
+        </Text>
+        <Text style={styles.instructions}>{this.state.mnemonic}</Text>
+        <Text style={styles.welcome}>
+          ...which as an encrypted (with a super-strong password, too!) seed is
+        </Text>
+        <Text style={styles.instructions}>{this.state.seed}</Text>
+        <Text style={styles.welcome}>here's the sorted json:</Text>
+        <Text style={styles.instructions}>
+          {JSON.stringify(serialize(testIdentity))}
+        </Text>
+      </ScrollView>
     );
   }
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
     backgroundColor: "#000",
     padding: 5
   },
@@ -108,12 +56,17 @@ const styles = StyleSheet.create({
     margin: 10,
     color: "green"
   },
+  instructions: {
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+    textAlign: "center",
+    lineHeight: 20,
+    color: "green",
+    margin: 3
+  },
   picker: {
     height: 100,
     width: 400,
-    justifyContent: "space-around",
-    borderColor: "green",
-    marginBottom: 20
+    borderColor: "green"
   },
   textInput: {
     height: 40,

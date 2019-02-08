@@ -4,12 +4,12 @@ import "./globals";
 import { Platform } from "react-native";
 import { createAppContainer, createStackNavigator } from "react-navigation";
 import MainScreen from "./screens/MainScreen";
-import AccountsScreen from "./screens/AccountsScreen";
+import ConnectScreen from "./screens/ConnectScreen";
 
 const navigator = createStackNavigator(
   {
     Home: MainScreen,
-    Accounts: AccountsScreen
+    Connect: ConnectScreen
   },
   {
     initialRouteName: "Home",
