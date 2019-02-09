@@ -2,6 +2,19 @@
 
 A proof of concept eth wallet built with React Native (using Expo as long as we can!)
 
+## After cloning the repo
+
+For the time being, after running `yarn install`, add these 4 lines to `node_modules/brorand/index.js` at the bottom of the file:
+
+    // super fix!
+    Rand.prototype._rand = function _rand(n) {
+      var arr = new Uint8Array(n);
+      window.crypto.getRandomValues(arr);
+      return arr;
+    };
+
+This will make sure that `Rand` is initialized using `window.crypto` (instead of `self.crypto`), which is `undefined` in React Native. Duh.
+
 ## Tricks, wizardry, and black magic
 
 In order to use web3.js, we need a few node.js modules (which aren't by default available in the React Native environment).

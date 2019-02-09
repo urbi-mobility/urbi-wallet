@@ -1,26 +1,23 @@
 {
-  "address": "",
-  "aaaanull": null,
-  "payload": {
-    "firstName": "",
-    "lastName": "",
-    "nationality": "IT",
-    "birthDate": "2018-1-22",
-    "birthCountry": "",
-    "birthProvince": "GE",
-    "birthLocality": "Arenzano",
-    "aaaanull": null,
-    "address": "",
-    "zip": "",
-    "city": "",
-    "country": "",
-    "phoneNumber": "",
-    "dlNumber": "",
-    "dlIssuer": "",
-    "dlIssueDate": "",
-    "dlExpirationDate": "",
-    "dlLevels": ["A", "B1"]
-  },
-  "signature": "",
-  "nonce": ""
+  "nonce": "504473516165537150",
+  "firstName": "Gianni",
+  "lastName": "Cipolla",
+  "nationality": "IT",
+  "birthDate": "1950-01-22",
+  "birthCountry": "Italy",
+  "birthProvince": "GE",
+  "birthLocality": "Arenzano",
+  "address": "Via Tasso 11",
+  "zip": "101010",
+  "city": "Milano",
+  "country": "Italy",
+  "phoneNumber": null,
+  "dlNumber": "AB123",
+  "dlIssuer": "Motorizzazione civile",
+  "dlIssueDate": "2010-02-08",
+  "dlExpirationDate": "",
+  "dlLevels": {
+    "B1": true,
+    "A": true
+  }
 }
