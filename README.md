@@ -2,24 +2,15 @@
 
 A proof of concept eth wallet built with React Native (using Expo as long as we can!)
 
-## After cloning the repo
-
-For the time being, after running `yarn install`, add these 4 lines to `node_modules/brorand/index.js` at the bottom of the file:
-
-    // super fix!
-    Rand.prototype._rand = function _rand(n) {
-      var arr = new Uint8Array(n);
-      window.crypto.getRandomValues(arr);
-      return arr;
-    };
-
-This will make sure that `Rand` is initialized using `window.crypto` (instead of `self.crypto`), which is `undefined` in React Native. Duh.
-
 ## Tricks, wizardry, and black magic
 
 In order to use web3.js, we need a few node.js modules (which aren't by default available in the React Native environment).
 Hence, we use `rn-cli.config.js` (loaded via `babel.config.ts`) and `globals.ts` to make web3.js pick up modules from `node-libs-react-native` and `vm-browserify`.
 We also use a random bytes implementation taken from [this repo][1], so that we don't need to use `react-native-crypto` (which uses native libraries, and thus can't be used within Expo).
+
+A postinstall script removes duplicated of `bitcore-lib` installed in nested `node_modules` packages, lest it complains about multiple versions being found.
+
+We set the `global.self` reference to `global` itself, so that `brorand` (required by `eth-lightwallet`) can resolve `self` and `self.crypto`, using the aforementioned `getRandomBytes()` implementation that we're using.
 
 ## Known issues (will try to keep this up to date)
 

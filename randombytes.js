@@ -23,10 +23,13 @@ const randomBytes = (size, cb) => {
   return bytes
 }
 
+// these 2 lines are simply to make brorand work (used by eth-lightwallet)
+global.self = global;
+global.self.crypto = { getRandomValues };
+
 const crypto = require("crypto");
 window.crypto = crypto;
 crypto.getRandomValues = getRandomValues;
-self = window;
-global.self = window;
+global.self.crypto = crypto;
 
 module.exports = randomBytes;
