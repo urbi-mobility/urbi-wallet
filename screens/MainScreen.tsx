@@ -6,6 +6,8 @@ import testIdentity from "urbi-wallet/assets/testIdentity.json";
 import { serialize } from "urbi-wallet/util/jsonUtils";
 import { signMsg, createKeystore } from "urbi-wallet/util/cryptoUtils";
 import { SecureStore } from "expo";
+import { colors } from "Urbi/utils/colors";
+import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 
 class MainScreen extends React.Component<NavigationScreenProps> {
   static navigationOptions = {
@@ -55,23 +57,23 @@ class MainScreen extends React.Component<NavigationScreenProps> {
   render() {
     return (
       <ScrollView
-        style={{ backgroundColor: "#000" }}
+        style={styles.container}
         contentContainerStyle={styles.container}
       >
-        <Text style={styles.welcome}>here's the sorted json:</Text>
-        <Text style={styles.instructions}>{this.state.sortedJson}</Text>
-        <Text style={styles.welcome}>
+        <Text style={styles.Text}>here's the sorted json:</Text>
+        <Text style={styles.Code}>{this.state.sortedJson}</Text>
+        <Text style={styles.Text}>
           Here's a random 12-word mnemonic, because why not?
         </Text>
-        <Text style={styles.instructions}>{this.state.mnemonic}</Text>
-        <Text style={styles.welcome}>
+        <Text style={styles.Code}>{this.state.mnemonic}</Text>
+        <Text style={styles.Text}>
           ...which was used to generate this address:
         </Text>
-        <Text style={styles.instructions}>{this.state.address}</Text>
-        <Text style={styles.welcome}>
+        <Text style={styles.Code}>{this.state.address}</Text>
+        <Text style={styles.Text}>
           ...which was used to sign the json above into:
         </Text>
-        <Text style={styles.instructions}>{this.state.signedJson}</Text>
+        <Text style={styles.Code}>{this.state.signedJson}</Text>
       </ScrollView>
     );
   }
@@ -79,20 +81,20 @@ class MainScreen extends React.Component<NavigationScreenProps> {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#000",
+    backgroundColor: colors.ulisse,
     padding: 5
   },
-  welcome: {
-    fontSize: 20,
+  Text: {
+    ...makeTextStyle("body", colors.secondary),
     textAlign: "center",
-    margin: 10,
-    color: "green"
+    padding: 6
   },
-  instructions: {
+  Code: {
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+    color: colors.uto,
+    fontSize: 12,
     textAlign: "center",
     lineHeight: 20,
-    color: "green",
     margin: 3
   },
   picker: {
