@@ -3,8 +3,9 @@ import { Platform, StyleSheet, Text, ScrollView } from "react-native";
 import { NavigationScreenProps } from "react-navigation";
 import * as lightwallet from "eth-lightwallet";
 import testIdentity from "../assets/testIdentity.json";
-import { mnemonicToSeedHex } from "../crypto/bip39";
 import { serialize } from "../util/jsonUtils";
+import { signMsg, createKeystore } from "../util/cryptoUtils";
+import { SecureStore } from "expo";
 
 class MainScreen extends React.Component<NavigationScreenProps> {
   static navigationOptions = {
@@ -12,41 +13,43 @@ class MainScreen extends React.Component<NavigationScreenProps> {
   };
 
   state = {
-    addresses: [],
+    address: "",
     mnemonic: "",
     signedJson: "",
     sortedJson: JSON.stringify(serialize(testIdentity))
   };
 
   componentDidMount() {
-    const mnemonic = lightwallet.keystore.generateRandomSeed();
-    const password = "omfg it's a secret";
-    lightwallet.keystore.createVault(
-      {
-        hdPathString: "m/44'/60'/0'/0",
-        seedPhrase: mnemonic,
-        password
-      },
-      (err, ks) => {
-        if (err) throw err;
+    SecureStore.getItemAsync("mnemonic").then(stored => {
+      let mnemonic, password;
+      if (!stored) {
+        mnemonic = lightwallet.keystore.generateRandomSeed();
+        password = "omfg it's a secret";
+        SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
+      } else {
+        const split = stored.split(":");
+        mnemonic = split[0];
+        password = split.splice(1).join(":");
+      }
 
-        ks.keyFromPassword(password, (err2, pwDerivedKey) => {
-          if (err2) throw err2;
+      this.setState({ mnemonic });
 
-          ks.generateNewAddress(pwDerivedKey, 1);
-          const addresses = ks.getAddresses();
-          const signature = lightwallet.signing.signMsg(
-            ks,
+      createKeystore(mnemonic, password)
+        .then(keystore => {
+          const { address, lightwalletKeystore, pwDerivedKey } = keystore;
+          const signedJson = signMsg(
+            lightwalletKeystore,
             pwDerivedKey,
             this.state.sortedJson,
-            addresses[0]
+            address
           );
-          const signedJson = lightwallet.signing.concatSig(signature);
-          this.setState({ addresses, signedJson });
+
+          this.setState({ address, signedJson });
+        })
+        .catch(err => {
+          throw err;
         });
-      }
-    );
-    this.setState({ mnemonic });
+    });
   }
 
   render() {
@@ -64,7 +67,7 @@ class MainScreen extends React.Component<NavigationScreenProps> {
         <Text style={styles.welcome}>
           ...which was used to generate this address:
         </Text>
-        <Text style={styles.instructions}>{this.state.addresses}</Text>
+        <Text style={styles.instructions}>{this.state.address}</Text>
         <Text style={styles.welcome}>
           ...which was used to sign the json above into:
         </Text>
