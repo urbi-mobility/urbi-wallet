@@ -7,6 +7,16 @@
     "jsx": "react",
     "lib": ["dom", "es2017"],
     "moduleResolution": "node",
-    "strict": true
+    "strict": true,
+    "paths": {
+      "urbi-wallet/*": ["*", "*.ios", "*.android", "*.json"],
+      "Urbi/*": [
+        "./Urbi/*",
+        "./Urbi/*.ios",
+        "./Urbi/*.android",
+        "./Urbi/*.json"
+      ]
+    },
+    "baseUrl": "."
   }
 }

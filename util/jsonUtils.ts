@@ -14,3 +14,5 @@ export const serialize = (obj: any) => {
     });
   return serialized;
 };
+
+export const serializeToJson = (obj: any) => JSON.stringify(serialize(obj));

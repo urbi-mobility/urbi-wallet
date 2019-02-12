@@ -23,6 +23,7 @@
     },
     "packagerOpts": {
       "config": "./rn-cli.config.js"
-    }
+    },
+    "scheme": "urbiwallet"
   }
 }

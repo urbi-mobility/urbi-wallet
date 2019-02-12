@@ -2,9 +2,9 @@ import * as React from "react";
 import { Platform, StyleSheet, Text, ScrollView } from "react-native";
 import { NavigationScreenProps } from "react-navigation";
 import * as lightwallet from "eth-lightwallet";
-import testIdentity from "../assets/testIdentity.json";
-import { serialize } from "../util/jsonUtils";
-import { signMsg, createKeystore } from "../util/cryptoUtils";
+import testIdentity from "urbi-wallet/assets/testIdentity.json";
+import { serialize } from "urbi-wallet/util/jsonUtils";
+import { signMsg, createKeystore } from "urbi-wallet/util/cryptoUtils";
 import { SecureStore } from "expo";
 
 class MainScreen extends React.Component<NavigationScreenProps> {

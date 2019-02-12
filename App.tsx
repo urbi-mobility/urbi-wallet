@@ -5,11 +5,17 @@ import { Platform } from "react-native";
 import { createAppContainer, createStackNavigator } from "react-navigation";
 import MainScreen from "./screens/MainScreen";
 import ConnectScreen from "./screens/ConnectScreen";
+import ConsentScreen from "./screens/ConsentScreen";
+import { Linking } from "expo";
 
 const navigator = createStackNavigator(
   {
     Home: MainScreen,
-    Connect: ConnectScreen
+    Connect: ConnectScreen,
+    Consent: {
+      screen: ConsentScreen,
+      path: "consent/:provider/:callback"
+    }
   },
   {
     initialRouteName: "Home",
@@ -29,8 +35,10 @@ const navigator = createStackNavigator(
 
 const Container = createAppContainer(navigator);
 
+const prefix = Linking.makeUrl("/");
+
 export default class App extends React.Component {
   render() {
-    return <Container />;
+    return <Container uriPrefix={prefix} />;
   }
 }
