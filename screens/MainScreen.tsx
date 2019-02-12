@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Platform, StyleSheet, Text, ScrollView } from "react-native";
+import { Platform, StyleSheet, Text, ScrollView, View } from "react-native";
 import { NavigationScreenProps } from "react-navigation";
 import * as lightwallet from "eth-lightwallet";
 import testIdentity from "urbi-wallet/assets/testIdentity.json";
@@ -8,6 +8,7 @@ import { signMsg, createKeystore } from "urbi-wallet/util/cryptoUtils";
 import { SecureStore } from "expo";
 import { colors } from "Urbi/utils/colors";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
+import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
 
 class MainScreen extends React.Component<NavigationScreenProps> {
   static navigationOptions = {
@@ -55,10 +56,11 @@ class MainScreen extends React.Component<NavigationScreenProps> {
   }
 
   render() {
+    const { navigation } = this.props;
     return (
       <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.container}
+        style={styles.Container}
+        contentContainerStyle={styles.Container}
       >
         <Text style={styles.Text}>here's the sorted json:</Text>
         <Text style={styles.Code}>{this.state.sortedJson}</Text>
@@ -74,18 +76,28 @@ class MainScreen extends React.Component<NavigationScreenProps> {
           ...which was used to sign the json above into:
         </Text>
         <Text style={styles.Code}>{this.state.signedJson}</Text>
+        <View style={styles.BottomButton}>
+          <ButtonPrimary
+            label="Add driving license data"
+            onPress={() => navigation.push("DrivingLicense")}
+          />
+        </View>
       </ScrollView>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  container: {
+  Container: {
     backgroundColor: colors.ulisse,
     padding: 5
   },
+  BottomButton: {
+    flex: 1,
+    padding: 20
+  },
   Text: {
-    ...makeTextStyle("body", colors.secondary),
+    ...makeTextStyle("title", colors.secondary),
     textAlign: "center",
     padding: 6
   },

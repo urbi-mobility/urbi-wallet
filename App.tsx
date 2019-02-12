@@ -8,6 +8,7 @@ import ConnectScreen from "./screens/ConnectScreen";
 import ConsentScreen from "./screens/ConsentScreen";
 import { Linking, Font } from "expo";
 import { colors } from "Urbi/utils/colors";
+import DrivingLicenseScreen from "./screens/DrivingLicense";
 
 const navigator = createStackNavigator(
   {
@@ -16,7 +17,8 @@ const navigator = createStackNavigator(
     Consent: {
       screen: ConsentScreen,
       path: "consent/:provider/:callback"
-    }
+    },
+    DrivingLicense: DrivingLicenseScreen
   },
   {
     initialRouteName: "Home",
@@ -46,6 +48,7 @@ export default class App extends React.Component<{}, { fontsLoaded: boolean }> {
   async componentDidMount() {
     await Font.loadAsync({
       Barlow: require("./assets/fonts/Barlow-Regular.ttf"),
+      "Barlow-Regular": require("./assets/fonts/Barlow-Regular.ttf"),
       "Barlow-Medium": require("./assets/fonts/Barlow-Medium.ttf"),
       "Barlow-Bold": require("./assets/fonts/Barlow-Bold.ttf"),
       "Barlow-ExtraBold": require("./assets/fonts/Barlow-ExtraBold.ttf")
