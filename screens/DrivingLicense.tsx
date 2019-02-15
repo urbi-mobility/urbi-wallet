@@ -1,12 +1,6 @@
 import * as React from "react";
 import { NavigationScreenProps } from "react-navigation";
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  findNodeHandle
-} from "react-native";
+import { StyleSheet, View, findNodeHandle } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { serializeToJson } from "urbi-wallet/util/jsonUtils";
 import { SecureStore } from "expo";
@@ -205,7 +199,7 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
           <UrbiTextInput
             fieldName="phoneNumber"
             ref={this.phoneNumberRef}
-            label="phone nuber"
+            label="phone number"
             placeholder="International prefix included"
             state={this.state}
             setState={this.setState.bind(this)}
