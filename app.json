@@ -21,6 +21,9 @@
     "ios": {
       "supportsTablet": true
     },
+    "android": {
+      "package": "co.urbi.wallet"
+    },
     "packagerOpts": {
       "config": "./rn-cli.config.js"
     },
