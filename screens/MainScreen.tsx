@@ -3,7 +3,6 @@ import { Platform, StyleSheet, Text, ScrollView, View } from "react-native";
 import { NavigationScreenProps } from "react-navigation";
 import * as lightwallet from "eth-lightwallet";
 import testIdentity from "urbi-wallet/assets/testIdentity.json";
-import { serialize } from "urbi-wallet/util/jsonUtils";
 import { signMsg, createKeystore } from "urbi-wallet/util/cryptoUtils";
 import { SecureStore } from "expo";
 import { colors } from "Urbi/utils/colors";
@@ -16,43 +15,52 @@ class MainScreen extends React.Component<NavigationScreenProps> {
   };
 
   state = {
-    address: "",
-    mnemonic: "",
-    signedJson: "",
-    sortedJson: JSON.stringify(serialize(testIdentity))
+    address: "loading...",
+    keystore: null,
+    mnemonic: "loading...",
+    signedJson: "loading...",
+    sortedJson: "loading..."
   };
 
   componentDidMount() {
-    SecureStore.getItemAsync("mnemonic").then(stored => {
-      let mnemonic, password;
-      if (!stored) {
-        mnemonic = lightwallet.keystore.generateRandomSeed();
-        password = "omfg it's a secret";
-        SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
-      } else {
-        const split = stored.split(":");
-        mnemonic = split[0];
-        password = split.splice(1).join(":");
-      }
+    SecureStore.getItemAsync("data").then(storedData => {
+      this.setState({ sortedJson: storedData || testIdentity });
 
-      this.setState({ mnemonic });
+      SecureStore.getItemAsync("mnemonic").then(stored => {
+        let mnemonic, password;
+        if (!stored) {
+          mnemonic = lightwallet.keystore.generateRandomSeed();
+          password = "omfg it's a secret";
+          SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
+        } else {
+          const split = stored.split(":");
+          mnemonic = split[0];
+          password = split.splice(1).join(":");
+        }
 
-      createKeystore(mnemonic, password)
-        .then(keystore => {
-          const { address, lightwalletKeystore, pwDerivedKey } = keystore;
-          const signedJson = signMsg(
-            lightwalletKeystore,
-            pwDerivedKey,
-            this.state.sortedJson,
-            address
-          );
+        this.setState({ mnemonic });
 
-          this.setState({ address, signedJson });
-        })
-        .catch(err => {
-          throw err;
-        });
+        createKeystore(mnemonic, password)
+          .then(keystore => {
+            const { address, lightwalletKeystore, pwDerivedKey } = keystore;
+            const signedJson = signMsg(
+              lightwalletKeystore,
+              pwDerivedKey,
+              this.state.sortedJson,
+              address
+            );
+
+            this.setState({ address, keystore, signedJson });
+          })
+          .catch(err => {
+            throw err;
+          });
+      });
     });
+  }
+
+  componentWillUnmount() {
+    console.log("will unmount");
   }
 
   render() {
@@ -78,7 +86,7 @@ class MainScreen extends React.Component<NavigationScreenProps> {
         <Text style={styles.Code}>{this.state.signedJson}</Text>
         <View style={styles.BottomButton}>
           <ButtonPrimary
-            label="Add driving license data"
+            label="Add personal data"
             onPress={() => navigation.push("DrivingLicense")}
           />
         </View>

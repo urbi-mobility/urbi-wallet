@@ -1,6 +1,6 @@
-import React, { SFC } from 'react';
-import { Platform, StyleSheet, Switch, View, ViewStyle } from 'react-native';
-import { colors } from 'Urbi/utils/colors';
+import * as React from "react";
+import { Platform, StyleSheet, Switch, View, ViewStyle } from "react-native";
+import { colors } from "Urbi/utils/colors";
 
 export interface ListItem {
   content: JSX.Element;
@@ -11,19 +11,19 @@ export interface ListItem {
 
 const styles = StyleSheet.create({
   Row: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
     height: 56,
     paddingTop: 8,
     paddingRight: 12,
     paddingBottom: 8,
-    paddingLeft: 16,
+    paddingLeft: 16
   } as ViewStyle,
   Content: {
     flex: 1,
-    marginRight: 8,
-  } as ViewStyle,
+    marginRight: 8
+  } as ViewStyle
 });
 
 const getSwitch = (item: ListItem) =>
@@ -43,7 +43,7 @@ const getSwitch = (item: ListItem) =>
         value={item.enabled}
         onValueChange={item.onSwitchToggle}
       />
-    ),
+    )
   });
 
 const withRightMargin = (item?: JSX.Element) => {
