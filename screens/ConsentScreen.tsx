@@ -1,13 +1,14 @@
 import * as React from "react";
 import { NavigationScreenProps } from "react-navigation";
 import { Platform, StyleSheet, Text, View } from "react-native";
-import { Linking } from "expo";
+import { Linking, SecureStore } from "expo";
 import { serializeToJson } from "urbi-wallet/util/jsonUtils";
 import DoubleChoice from "Urbi/components/DoubleChoice";
 import ButtonCompactDefault from "Urbi/molecules/buttons/ButtonCompactDefault";
 import ButtonCompactPrimary from "Urbi/molecules/buttons/ButtonCompactPrimary";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import { colors } from "Urbi/utils/colors";
+import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
 
 class ConsentScreen extends React.Component<NavigationScreenProps> {
   static navigationOptions = {
@@ -35,16 +36,21 @@ class ConsentScreen extends React.Component<NavigationScreenProps> {
   }
 
   onOkPressed() {
-    const url = Linking.makeUrl(this.state.callback, {
-      consent: true,
-      payload: serializeToJson({ bananas: 23 })
+    SecureStore.getItemAsync("cert").then(storedCert => {
+      if (!storedCert) {
+        window.alert("You know nothing, Jon Snow");
+      } else {
+        const url = `${
+          this.state.callback
+        }?consent=true&payload=${encodeURIComponent(storedCert)}`;
+        console.log(url);
+        Linking.openURL(url);
+      }
     });
-    console.log(url);
-    Linking.openURL(url);
   }
 
   onNoPressed() {
-    console.log("nope");
+    return () => console.log("nope");
   }
 
   render() {
@@ -57,14 +63,9 @@ class ConsentScreen extends React.Component<NavigationScreenProps> {
           I will call <Text style={styles.Code}>{this.state.callback}</Text> to
           notify of the outcome
         </Text>
-        <DoubleChoice
-          left={
-            <ButtonCompactDefault label="Nope" onPress={this.onNoPressed} />
-          }
-          right={
-            <ButtonCompactPrimary label="Yep" onPress={this.onOkPressed} />
-          }
-        />
+        <View style={styles.ButtonContainer}>
+          <ButtonPrimary label="Allow access" onPress={this.onOkPressed} />
+        </View>
       </View>
     );
   }
@@ -72,14 +73,12 @@ class ConsentScreen extends React.Component<NavigationScreenProps> {
 
 const styles = StyleSheet.create({
   Row: {
-    backgroundColor: "white",
-    alignItems: "center",
-    marginBottom: 16
+    flex: 1,
+    backgroundColor: colors.ulisse
   },
-  Component: {
-    flexDirection: "row",
-    justifyContent: "center",
-    flex: 1
+  ButtonContainer: {
+    flex: 1,
+    padding: 10
   },
   Text: {
     ...makeTextStyle("body", colors.secondary),
@@ -89,8 +88,7 @@ const styles = StyleSheet.create({
   Code: {
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
     textAlign: "center"
-  },
-  Label: { backgroundColor: "#eee", flex: 1, alignSelf: "stretch" }
+  }
 });
 
 export default ConsentScreen;

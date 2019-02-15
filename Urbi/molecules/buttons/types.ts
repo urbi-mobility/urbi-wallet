@@ -42,7 +42,7 @@ export interface ToggleableProps {
 
 export interface ToggleProps extends ToggleableProps {
   height: number;
-  content: (active: boolean) => ReactElement<Icon> | ReactElement<Image>;
+  content: (active: boolean) => ReactElement<Image>;
   styleFunction: (active: boolean) => ViewStyle;
 }
 
