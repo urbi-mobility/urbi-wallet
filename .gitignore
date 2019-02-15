@@ -32,3 +32,6 @@ androidEmulator.conf
 
 #ios
 ios/**/xcuserdata/*
+
+# keystore files
+*.jks

@@ -12,11 +12,11 @@
   "dependencies": {
     "crypto-browserify": "^3.12.0",
     "eth-lightwallet": "^3.0.1",
-    "expo": "^32.0.0",
+    "expo": "^31.0.0",
     "node-libs-browser": "^2.2.0",
     "node-libs-react-native": "^1.0.3",
     "react": "16.5.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-31.0.0.tar.gz",
     "react-native-keyboard-aware-scroll-view": "^0.8.0",
     "react-native-loading-spinner-overlay": "^1.0.1",
     "react-navigation": "^3.1.2",
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/assert": "^1.4.1",
     "@types/eth-lightwallet": "^3.0.0",
-    "@types/expo": "^32.0.2",
+    "@types/expo": "^31.0.0",
     "@types/json-stable-stringify": "^1.0.32",
     "@types/pbkdf2": "^3.0.0",
     "@types/react": "^16.4.18",

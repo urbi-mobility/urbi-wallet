@@ -2,10 +2,6 @@ import * as React from "react";
 import { NavigationScreenProps } from "react-navigation";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import { Linking, SecureStore } from "expo";
-import { serializeToJson } from "urbi-wallet/util/jsonUtils";
-import DoubleChoice from "Urbi/components/DoubleChoice";
-import ButtonCompactDefault from "Urbi/molecules/buttons/ButtonCompactDefault";
-import ButtonCompactPrimary from "Urbi/molecules/buttons/ButtonCompactPrimary";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import { colors } from "Urbi/utils/colors";
 import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
@@ -24,7 +20,6 @@ class ConsentScreen extends React.Component<NavigationScreenProps> {
     super(props);
 
     this.onOkPressed = this.onOkPressed.bind(this);
-    this.onNoPressed = this.onNoPressed.bind(this);
 
     const { navigation } = props;
     this.state = {
@@ -47,10 +42,6 @@ class ConsentScreen extends React.Component<NavigationScreenProps> {
         Linking.openURL(url);
       }
     });
-  }
-
-  onNoPressed() {
-    return () => console.log("nope");
   }
 
   render() {

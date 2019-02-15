@@ -4,7 +4,7 @@
     "description": "A proof of concept of an Ethereum wallet in React Native",
     "slug": "urbi-wallet",
     "privacy": "public",
-    "sdkVersion": "32.0.0",
+    "sdkVersion": "31.0.0",
     "platforms": ["ios", "android"],
     "version": "1.0.0",
     "orientation": "portrait",
