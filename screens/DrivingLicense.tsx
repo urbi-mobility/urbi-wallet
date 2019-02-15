@@ -1,6 +1,13 @@
 import * as React from "react";
 import { NavigationScreenProps } from "react-navigation";
-import { StyleSheet, Text, View, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  findNodeHandle
+} from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { serializeToJson } from "urbi-wallet/util/jsonUtils";
 import { SecureStore } from "expo";
 import testIdentity from "urbi-wallet/assets/testIdentity.json";
@@ -24,10 +31,28 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
     focused: "firstName"
   };
 
+  scroll?: JSX.Element;
+
+  lastNameRef = React.createRef<UrbiTextInput>();
+  nationalityRef = React.createRef<UrbiTextInput>();
+  birthDateRef = React.createRef<UrbiTextInput>();
+  birthLocalityRef = React.createRef<UrbiTextInput>();
+  birthProvinceRef = React.createRef<UrbiTextInput>();
+  birthCountryRef = React.createRef<UrbiTextInput>();
+  addressRef = React.createRef<UrbiTextInput>();
+  zipRef = React.createRef<UrbiTextInput>();
+  countryRef = React.createRef<UrbiTextInput>();
+  phoneNumberRef = React.createRef<UrbiTextInput>();
+  dlNumberRef = React.createRef<UrbiTextInput>();
+  dlIssuerRef = React.createRef<UrbiTextInput>();
+  dlIssueDateRef = React.createRef<UrbiTextInput>();
+  dlExpirationDateRef = React.createRef<UrbiTextInput>();
+
   constructor(props: NavigationScreenProps) {
     super(props);
     this.toggleLicense = this.toggleLicense.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
+    this.scrollTo = this.scrollTo.bind(this);
   }
 
   componentDidMount() {
@@ -36,10 +61,6 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
         this.setState(JSON.parse(stored));
       }
     });
-  }
-
-  componentWillUnmount() {
-    console.log("driving license will unmount");
   }
 
   onSubmit() {
@@ -66,6 +87,10 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
       .catch(e => window.alert(`oh no. Oh no no no. ${e}`));
   }
 
+  scrollTo(textInput: ReturnType<typeof findNodeHandle>) {
+    this.scroll!.props.scrollToFocusedInput(textInput);
+  }
+
   toggleLicense(type: string) {
     return () =>
       this.setState({
@@ -75,7 +100,7 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
 
   render() {
     return (
-      <ScrollView>
+      <KeyboardAwareScrollView innerRef={ref => (this.scroll = ref)}>
         <View style={styles.Form}>
           <UrbiTextInput
             fieldName="firstName"
@@ -83,108 +108,151 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
             placeholder="Your first name"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.lastNameRef.current!.focus()}
+            scroll={this.scrollTo}
             autoFocus
           />
           <UrbiTextInput
             fieldName="lastName"
+            ref={this.lastNameRef}
             label="last name"
             placeholder="Your last name"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.nationalityRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="nationality"
+            ref={this.nationalityRef}
             label="nationality"
             placeholder="2-letter code"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.birthDateRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="birthDate"
+            ref={this.birthDateRef}
             label="date of birth"
             placeholder="YYYY-mm-DD"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.birthLocalityRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="birthLocality"
+            ref={this.birthLocalityRef}
             label="place of birth"
             placeholder="City of birth"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.birthProvinceRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="birthProvince"
+            ref={this.birthProvinceRef}
             label="province of birth"
             placeholder="2-letter code"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.birthCountryRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="birthCountry"
+            ref={this.birthCountryRef}
             label="country of birth"
             placeholder="Full country name"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.addressRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="address"
+            ref={this.addressRef}
             label="address"
             placeholder="Street and street number"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.zipRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="zip"
+            ref={this.zipRef}
             label="zip code"
             placeholder="ZIP code"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.countryRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="country"
+            ref={this.countryRef}
             label="country of residence"
             placeholder="Full country name"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.phoneNumberRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="phoneNumber"
+            ref={this.phoneNumberRef}
             label="phone nuber"
             placeholder="International prefix included"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.dlNumberRef.current!.focus()}
+            scroll={this.scrollTo}
           />
         </View>
         <SectionsDivider label="Driving license data" />
         <View style={styles.Form}>
           <UrbiTextInput
             fieldName="dlNumber"
+            ref={this.dlNumberRef}
             label="driving license number"
             placeholder="Full code"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.dlIssuerRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="dlIssuer"
+            ref={this.dlIssuerRef}
             label="issued by"
             placeholder="Entity that released the driving license"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.dlIssueDateRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="dlIssueDate"
+            ref={this.dlIssueDateRef}
             label="issue date"
             placeholder="YYYY-mm-DD"
             state={this.state}
             setState={this.setState.bind(this)}
+            onSubmitEditing={() => this.dlExpirationDateRef.current!.focus()}
+            scroll={this.scrollTo}
           />
           <UrbiTextInput
             fieldName="dlExpirationDate"
+            ref={this.dlExpirationDateRef}
             label="expiration date"
             placeholder="YYYY-mm-DD"
             state={this.state}
             setState={this.setState.bind(this)}
+            scroll={this.scrollTo}
           />
         </View>
         <SectionsDivider label="Driving license type" />
@@ -199,7 +267,7 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
         <View style={styles.BottomButton}>
           <ButtonPrimary label="Store securely" onPress={this.onSubmit} />
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     );
   }
 }

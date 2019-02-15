@@ -2,29 +2,50 @@ import * as React from "react";
 import { Platform, StyleSheet, Text, ScrollView, View } from "react-native";
 import { NavigationScreenProps } from "react-navigation";
 import * as lightwallet from "eth-lightwallet";
-import testIdentity from "urbi-wallet/assets/testIdentity.json";
-import { signMsg, createKeystore } from "urbi-wallet/util/cryptoUtils";
+import * as testIdentity from "urbi-wallet/assets/testIdentity.json";
+import {
+  signMsg,
+  createKeystore,
+  UrbiKeyStore
+} from "urbi-wallet/util/cryptoUtils";
 import { SecureStore } from "expo";
 import { colors } from "Urbi/utils/colors";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
+import { serializeToJson } from "urbi-wallet/util/jsonUtils";
+
+const caBaseUrl = "https://urbitunnel.eu.ngrok.io";
 
 class MainScreen extends React.Component<NavigationScreenProps> {
   static navigationOptions = {
     title: "Super Crypto Wallet! 💣"
   };
 
-  state = {
+  state: {
+    address: string;
+    mnemonic: string;
+    signedJson: string;
+    sortedJson: string;
+    keystore?: UrbiKeyStore;
+  } = {
     address: "loading...",
-    keystore: null,
     mnemonic: "loading...",
     signedJson: "loading...",
     sortedJson: "loading..."
   };
 
+  constructor(props: NavigationScreenProps) {
+    super(props);
+
+    this.sendToCA = this.sendToCA.bind(this);
+    this.withNonce = this.withNonce.bind(this);
+  }
+
   componentDidMount() {
     SecureStore.getItemAsync("data").then(storedData => {
-      this.setState({ sortedJson: storedData || testIdentity });
+      const sortedJson =
+        storedData || this.withNonce(serializeToJson(testIdentity));
+      this.setState({ sortedJson });
 
       SecureStore.getItemAsync("mnemonic").then(stored => {
         let mnemonic, password;
@@ -42,15 +63,22 @@ class MainScreen extends React.Component<NavigationScreenProps> {
 
         createKeystore(mnemonic, password)
           .then(keystore => {
-            const { address, lightwalletKeystore, pwDerivedKey } = keystore;
-            const signedJson = signMsg(
-              lightwalletKeystore,
-              pwDerivedKey,
-              this.state.sortedJson,
-              address
+            this.setState(
+              { address: keystore.address, keystore },
+              this.signJson
             );
 
-            this.setState({ address, keystore, signedJson });
+            // reload data from SecureStorage every time the page is displayed anew
+            this.props.navigation.addListener("willFocus", () => {
+              SecureStore.getItemAsync("data").then(storedData => {
+                this.setState(
+                  {
+                    sortedJson: this.withNonce(storedData!)
+                  },
+                  this.signJson
+                );
+              });
+            });
           })
           .catch(err => {
             throw err;
@@ -59,8 +87,52 @@ class MainScreen extends React.Component<NavigationScreenProps> {
     });
   }
 
-  componentWillUnmount() {
-    console.log("will unmount");
+  withNonce(storedData: string) {
+    const j = JSON.parse(storedData);
+    return serializeToJson({
+      ...j,
+      nonce: Math.ceil(Math.random() * 1e18).toString()
+    });
+  }
+
+  signJson() {
+    const { address, lightwalletKeystore, pwDerivedKey } = this.state.keystore!;
+    const signedJson = signMsg(
+      lightwalletKeystore,
+      pwDerivedKey,
+      this.state.sortedJson,
+      address
+    );
+    this.setState({ signedJson });
+  }
+
+  async sendToCA() {
+    try {
+      const tx = serializeToJson({
+        address: this.state.address,
+        signature: this.state.signedJson,
+        payload: JSON.parse(this.state.sortedJson)
+      });
+      const response = await fetch(`${caBaseUrl}/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: tx
+      });
+
+      if (response.status === 200) {
+        SecureStore.setItemAsync("cert", tx).catch(e =>
+          window.alert(`Couldn't store validated transaction. ${e}`)
+        );
+
+        SecureStore.setItemAsync("data", this.state.sortedJson).catch(e =>
+          window.alert(`oh no. Oh no no no. Couldn't store signed data. ${e}`)
+        );
+      }
+
+      window.alert(`The CA says:\n${JSON.stringify(await response.json())}`);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   render() {
@@ -72,9 +144,7 @@ class MainScreen extends React.Component<NavigationScreenProps> {
       >
         <Text style={styles.Text}>here's the sorted json:</Text>
         <Text style={styles.Code}>{this.state.sortedJson}</Text>
-        <Text style={styles.Text}>
-          Here's a random 12-word mnemonic, because why not?
-        </Text>
+        <Text style={styles.Text}>here's the 12-word mnemonic seed:</Text>
         <Text style={styles.Code}>{this.state.mnemonic}</Text>
         <Text style={styles.Text}>
           ...which was used to generate this address:
@@ -86,9 +156,12 @@ class MainScreen extends React.Component<NavigationScreenProps> {
         <Text style={styles.Code}>{this.state.signedJson}</Text>
         <View style={styles.BottomButton}>
           <ButtonPrimary
-            label="Add personal data"
+            label="Add/Edit personal data"
             onPress={() => navigation.push("DrivingLicense")}
           />
+        </View>
+        <View style={styles.BottomButton}>
+          <ButtonPrimary label="Send to CA" onPress={this.sendToCA} />
         </View>
       </ScrollView>
     );

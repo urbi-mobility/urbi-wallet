@@ -1,5 +1,13 @@
 import * as React from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  findNodeHandle,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  NativeSyntheticEvent,
+  TextInputFocusEventData
+} from "react-native";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import { colors } from "Urbi/utils/colors";
 
@@ -8,19 +16,38 @@ type UrbiTextInputProps = {
   fieldName: string;
   label: string;
   placeholder: string;
+  scroll: (node: ReturnType<typeof findNodeHandle>) => any;
   state: {
     focused: string;
     [key: string]: string;
   };
+  onSubmitEditing?: () => any;
   setState: (v: any) => any;
 };
 
 export class UrbiTextInput extends React.Component<UrbiTextInputProps> {
+  ref = React.createRef<TextInput>();
+
+  constructor(props: UrbiTextInputProps) {
+    super(props);
+    this.onFocus = this.onFocus.bind(this);
+  }
+
+  focus() {
+    this.ref.current!.focus();
+  }
+
+  onFocus(event: NativeSyntheticEvent<TextInputFocusEventData>) {
+    this.props.setState({ focused: this.props.fieldName });
+    this.props.scroll(findNodeHandle(event.target));
+  }
+
   render() {
     const {
       autoFocus,
       fieldName,
       label,
+      onSubmitEditing,
       placeholder,
       setState,
       state
@@ -33,11 +60,13 @@ export class UrbiTextInput extends React.Component<UrbiTextInputProps> {
             styles.TextInput,
             state.focused === fieldName ? styles.TextInputFocused : null
           ]}
+          ref={this.ref}
           onChangeText={fieldValue => setState({ [fieldName]: fieldValue })}
           value={state[fieldName]}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          onFocus={() => setState({ focused: fieldName })}
+          onSubmitEditing={onSubmitEditing}
+          onFocus={this.onFocus}
         />
       </View>
     );
