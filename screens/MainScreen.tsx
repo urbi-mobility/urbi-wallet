@@ -13,6 +13,7 @@ import { colors } from "Urbi/utils/colors";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
 import { serializeToJson } from "urbi-wallet/util/jsonUtils";
+import Spinner from "react-native-loading-spinner-overlay";
 
 const caBaseUrl = "https://urbitunnel.eu.ngrok.io";
 
@@ -24,12 +25,14 @@ class MainScreen extends React.Component<NavigationScreenProps> {
   state: {
     address: string;
     mnemonic: string;
+    showSpinner: boolean;
     signedJson: string;
     sortedJson: string;
     keystore?: UrbiKeyStore;
   } = {
     address: "loading...",
     mnemonic: "loading...",
+    showSpinner: false,
     signedJson: "loading...",
     sortedJson: "loading..."
   };
@@ -107,6 +110,7 @@ class MainScreen extends React.Component<NavigationScreenProps> {
   }
 
   async sendToCA() {
+    this.setState({ showSpinner: true });
     try {
       const tx = serializeToJson({
         address: this.state.address,
@@ -119,6 +123,8 @@ class MainScreen extends React.Component<NavigationScreenProps> {
         body: tx
       });
 
+      this.setState({ showSpinner: false });
+
       if (response.status === 200) {
         SecureStore.setItemAsync("cert", tx).catch(e =>
           window.alert(`Couldn't store validated transaction. ${e}`)
@@ -127,9 +133,13 @@ class MainScreen extends React.Component<NavigationScreenProps> {
         SecureStore.setItemAsync("data", this.state.sortedJson).catch(e =>
           window.alert(`oh no. Oh no no no. Couldn't store signed data. ${e}`)
         );
-      }
 
-      window.alert(`The CA says:\n${JSON.stringify(await response.json())}`);
+        window.alert(`The CA says:\n${JSON.stringify(await response.json())}`);
+      } else {
+        window.alert(
+          `The CA server replied with a ${response.status} status code :(`
+        );
+      }
     } catch (error) {
       console.error(error);
     }
@@ -138,32 +148,41 @@ class MainScreen extends React.Component<NavigationScreenProps> {
   render() {
     const { navigation } = this.props;
     return (
-      <ScrollView
-        style={styles.Container}
-        contentContainerStyle={styles.Container}
-      >
-        <Text style={styles.Text}>here's the sorted json:</Text>
-        <Text style={styles.Code}>{this.state.sortedJson}</Text>
-        <Text style={styles.Text}>here's the 12-word mnemonic seed:</Text>
-        <Text style={styles.Code}>{this.state.mnemonic}</Text>
-        <Text style={styles.Text}>
-          ...which was used to generate this address:
-        </Text>
-        <Text style={styles.Code}>{this.state.address}</Text>
-        <Text style={styles.Text}>
-          ...which was used to sign the json above into:
-        </Text>
-        <Text style={styles.Code}>{this.state.signedJson}</Text>
-        <View style={styles.BottomButton}>
-          <ButtonPrimary
-            label="Add/Edit personal data"
-            onPress={() => navigation.push("DrivingLicense")}
-          />
-        </View>
-        <View style={styles.BottomButton}>
-          <ButtonPrimary label="Send to CA" onPress={this.sendToCA} />
-        </View>
-      </ScrollView>
+      <View style={{ flex: 1 }}>
+        <Spinner
+          visible={this.state.showSpinner}
+          textContent="Waiting for CA response..."
+          textStyle={{ ...styles.Text, color: colors.ulisse, fontSize: 22 }}
+          color={colors.primary}
+          overlayColor="rgba(0, 0, 0, 0.75)"
+        />
+        <ScrollView
+          style={styles.Container}
+          contentContainerStyle={styles.Container}
+        >
+          <Text style={styles.Text}>here's the sorted json:</Text>
+          <Text style={styles.Code}>{this.state.sortedJson}</Text>
+          <Text style={styles.Text}>here's the 12-word mnemonic seed:</Text>
+          <Text style={styles.Code}>{this.state.mnemonic}</Text>
+          <Text style={styles.Text}>
+            ...which was used to generate this address:
+          </Text>
+          <Text style={styles.Code}>{this.state.address}</Text>
+          <Text style={styles.Text}>
+            ...which was used to sign the json above into:
+          </Text>
+          <Text style={styles.Code}>{this.state.signedJson}</Text>
+          <View style={styles.BottomButton}>
+            <ButtonPrimary
+              label="Add/Edit personal data"
+              onPress={() => navigation.push("DrivingLicense")}
+            />
+          </View>
+          <View style={styles.BottomButton}>
+            <ButtonPrimary label="Send to CA" onPress={this.sendToCA} />
+          </View>
+        </ScrollView>
+      </View>
     );
   }
 }
