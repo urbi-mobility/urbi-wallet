@@ -16,20 +16,11 @@ class Button extends React.PureComponent<ExtendedButtonProps> {
   styles: {
     Wrapper: RegisteredStyle<ViewStyle>;
     Button: RegisteredStyle<ViewStyle>;
-    Text: RegisteredStyle<TextStyle>;
   };
 
   constructor(props: ExtendedButtonProps) {
     super(props);
-    const {
-      backgroundColor,
-      color,
-      disabled,
-      height,
-      horizontalPadding,
-      maxWidth,
-      minWidth
-    } = props;
+    const { height, horizontalPadding, maxWidth, minWidth } = props;
     this.styles = StyleSheet.create({
       Wrapper: {
         flex: 1,
@@ -44,18 +35,30 @@ class Button extends React.PureComponent<ExtendedButtonProps> {
         alignItems: "center",
         justifyContent: "center",
         borderRadius: height / 2,
-        borderColor: disabled ? undefined : props.borderColor,
-        borderWidth: disabled ? undefined : props.borderWidth,
         paddingLeft: horizontalPadding,
         paddingRight: horizontalPadding,
         height,
-        backgroundColor: disabled ? colors.ursula : backgroundColor,
         maxWidth,
         minWidth,
         maxHeight: height
-      } as ViewStyle,
-      Text: textStyle(this.props.textStyle, disabled ? colors.ulisse : color)
+      } as ViewStyle
     });
+  }
+
+  getTextStyle() {
+    return textStyle(
+      this.props.textStyle,
+      this.props.disabled ? colors.ulisse : this.props.color
+    );
+  }
+
+  getDisabledDependentButtonStyles() {
+    const { backgroundColor, borderColor, borderWidth, disabled } = this.props;
+    return {
+      borderColor: disabled ? undefined : borderColor,
+      borderWidth: disabled ? undefined : borderWidth,
+      backgroundColor: disabled ? colors.ursula : backgroundColor
+    };
   }
 
   render() {
@@ -74,8 +77,13 @@ class Button extends React.PureComponent<ExtendedButtonProps> {
         elevation={backgroundColor === colors.transparent || disabled ? 0 : 1}
       >
         <TouchableNativeFeedback onPress={disabled ? undefined : onPress}>
-          <View style={this.styles.Button}>
-            <Text style={this.styles.Text}>
+          <View
+            style={[
+              this.styles.Button,
+              this.getDisabledDependentButtonStyles()
+            ]}
+          >
+            <Text style={this.getTextStyle()}>
               {isUppercase ? label.toUpperCase() : label}
             </Text>
           </View>

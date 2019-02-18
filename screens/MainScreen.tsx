@@ -1,40 +1,51 @@
 import * as React from "react";
-import { Platform, StyleSheet, Text, ScrollView, View } from "react-native";
-import { NavigationScreenProps } from "react-navigation";
-import * as lightwallet from "eth-lightwallet";
-import * as testIdentity from "urbi-wallet/assets/testIdentity.json";
+import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
-  signMsg,
-  createKeystore,
-  UrbiKeyStore
+  NavigationScreenProps,
+  NavigationEventSubscription
+} from "react-navigation";
+import {
+  generateNewKeystore,
+  sign,
+  UrbiKeyStore,
+  createKeystore
 } from "urbi-wallet/util/cryptoUtils";
-import { SecureStore } from "expo";
+import { SecureStore, Linking } from "expo";
 import { colors } from "Urbi/utils/colors";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
 import { serializeToJson } from "urbi-wallet/util/jsonUtils";
 import Spinner from "react-native-loading-spinner-overlay";
+import { popup } from "urbi-wallet/util/uiUtils";
 
 const caBaseUrl = "https://urbitunnel.eu.ngrok.io";
 
-class MainScreen extends React.Component<NavigationScreenProps> {
-  static navigationOptions = {
-    title: "Super Crypto Wallet! 💣"
-  };
+type State = {
+  cert: { txUrl: string } | null;
+  error?: any;
+  focusListener?: NavigationEventSubscription;
+  keystore?: UrbiKeyStore | null;
+  mnemonic?: string;
+  password?: string;
+  showSpinner: boolean;
+  signedJson?: string;
+  sortedJson?: string | null;
+};
 
-  state: {
-    address: string;
-    mnemonic: string;
-    showSpinner: boolean;
-    signedJson: string;
-    sortedJson: string;
-    keystore?: UrbiKeyStore;
-  } = {
-    address: "loading...",
-    mnemonic: "loading...",
-    showSpinner: false,
-    signedJson: "loading...",
-    sortedJson: "loading..."
+const defaultState = {
+  cert: null,
+  error: null,
+  keystore: null,
+  mnemonic: "",
+  password: "",
+  showSpinner: false,
+  signedJson: "loading...",
+  sortedJson: ""
+};
+
+class MainScreen extends React.Component<NavigationScreenProps, State> {
+  static navigationOptions = {
+    title: "Urbi Wallet"
   };
 
   constructor(props: NavigationScreenProps) {
@@ -42,52 +53,48 @@ class MainScreen extends React.Component<NavigationScreenProps> {
 
     this.sendToCA = this.sendToCA.bind(this);
     this.withNonce = this.withNonce.bind(this);
+    this.deleteEverything = this.deleteEverything.bind(this);
+    this.generateKeyStore = this.generateKeyStore.bind(this);
+    this.viewCert = this.viewCert.bind(this);
+    this.state = defaultState;
   }
 
   componentDidMount() {
-    SecureStore.getItemAsync("data").then(storedData => {
-      const sortedJson =
-        storedData || this.withNonce(serializeToJson(testIdentity));
-      this.setState({ sortedJson });
+    SecureStore.getItemAsync("cert").then(cert =>
+      this.setState({ cert: JSON.parse(cert!) })
+    );
+    SecureStore.getItemAsync("data")
+      .then(storedData => {
+        this.setState({ sortedJson: storedData });
 
-      SecureStore.getItemAsync("mnemonic").then(stored => {
-        let mnemonic, password;
-        if (!stored) {
-          mnemonic = lightwallet.keystore.generateRandomSeed();
-          password = "omfg it's a secret";
-          SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
-        } else {
-          const split = stored.split(":");
-          mnemonic = split[0];
-          password = split.splice(1).join(":");
-        }
+        SecureStore.getItemAsync("mnemonic").then(mnemonicAndPassword => {
+          if (mnemonicAndPassword) {
+            const split = mnemonicAndPassword.split(":");
+            const mnemonic = split[0];
+            const password = split.splice(1).join(":");
+            this.setState({ mnemonic, password });
+          }
 
-        this.setState({ mnemonic });
-
-        createKeystore(mnemonic, password)
-          .then(keystore => {
-            this.setState(
-              { address: keystore.address, keystore },
-              this.signJson
-            );
-
-            // reload data from SecureStorage every time the page is displayed anew
-            this.props.navigation.addListener("willFocus", () => {
-              SecureStore.getItemAsync("data").then(storedData => {
-                this.setState(
-                  {
-                    sortedJson: this.withNonce(storedData!)
-                  },
-                  this.signJson
+          // reload data from SecureStorage every time the page is displayed anew
+          this.setState({
+            focusListener: this.props.navigation.addListener(
+              "willFocus",
+              () => {
+                SecureStore.getItemAsync("data").then(sortedJson =>
+                  this.setState({ sortedJson })
                 );
-              });
-            });
-          })
-          .catch(err => {
-            throw err;
+              }
+            )
           });
+        });
+      })
+      .catch(err => {
+        throw err;
       });
-    });
+  }
+
+  componentWillUnmount() {
+    this.state.focusListener && this.state.focusListener.remove();
   }
 
   withNonce(storedData: string) {
@@ -98,24 +105,21 @@ class MainScreen extends React.Component<NavigationScreenProps> {
     });
   }
 
-  signJson() {
-    const { address, lightwalletKeystore, pwDerivedKey } = this.state.keystore!;
-    const signedJson = signMsg(
-      lightwalletKeystore,
-      pwDerivedKey,
-      this.state.sortedJson,
-      address
-    );
-    this.setState({ signedJson });
-  }
-
   async sendToCA() {
+    const { keystore, mnemonic, password } = this.state;
     this.setState({ showSpinner: true });
+    let ks = keystore;
+    if (!ks) {
+      ks = await createKeystore(mnemonic!, password!);
+    }
+    this.setState({ keystore: ks });
+    const payload = this.withNonce(this.state.sortedJson!);
+    const signature = sign(ks, payload);
     try {
       const tx = serializeToJson({
-        address: this.state.address,
-        signature: this.state.signedJson,
-        payload: JSON.parse(this.state.sortedJson)
+        address: ks.address,
+        signature,
+        payload: JSON.parse(payload)
       });
       const response = await fetch(`${caBaseUrl}/validate`, {
         method: "POST",
@@ -123,34 +127,140 @@ class MainScreen extends React.Component<NavigationScreenProps> {
         body: tx
       });
 
-      this.setState({ showSpinner: false });
+      this.setState({ showSpinner: false }, async () => {
+        if (response.status === 200) {
+          SecureStore.setItemAsync("identity", tx).catch(e =>
+            popup(`Couldn't store data for validated transaction. ${e}`)
+          );
 
-      if (response.status === 200) {
-        SecureStore.setItemAsync("cert", tx).catch(e =>
-          window.alert(`Couldn't store validated transaction. ${e}`)
-        );
+          SecureStore.setItemAsync("data", this.state.sortedJson!).catch(e =>
+            popup(`oh no. Oh no no no. Couldn't store signed data. ${e}`)
+          );
 
-        SecureStore.setItemAsync("data", this.state.sortedJson).catch(e =>
-          window.alert(`oh no. Oh no no no. Couldn't store signed data. ${e}`)
-        );
+          const cert = await response.json();
 
-        window.alert(`The CA says:\n${JSON.stringify(await response.json())}`);
-      } else {
-        window.alert(
-          `The CA server replied with a ${response.status} status code :(`
-        );
-      }
+          this.setState({ cert });
+
+          SecureStore.setItemAsync("cert", serializeToJson(cert)).catch(e =>
+            popup(`Couldn't store validate transaction. ${e}`)
+          );
+
+          popup(JSON.stringify(cert), "Response from the CA");
+        } else {
+          popup(
+            `The CA server replied with a ${response.status} status code :(`
+          );
+        }
+      });
     } catch (error) {
+      this.setState({ showSpinner: false });
       console.error(error);
     }
   }
 
-  render() {
+  generateKeyStore() {
+    generateNewKeystore()
+      .then(urbiKeyStore => {
+        const { mnemonic, password } = urbiKeyStore;
+        SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
+        this.setState({ keystore: urbiKeyStore, mnemonic, password });
+      })
+      .catch(e => this.setState({ error: e }));
+  }
+
+  deleteEverything() {
+    this.setState(defaultState, () => {
+      SecureStore.deleteItemAsync("cert");
+      SecureStore.deleteItemAsync("data");
+      SecureStore.deleteItemAsync("identity");
+      SecureStore.deleteItemAsync("mnemonic");
+    });
+  }
+
+  viewCert() {
+    Linking.openURL(this.state.cert!.txUrl);
+  }
+
+  renderKeyStore() {
+    const { mnemonic } = this.state;
+    return (
+      <View>
+        <Text style={styles.Text}>
+          {mnemonic ? "Keystore was generated" : "No keystore"}
+        </Text>
+        <View style={styles.Buttons}>
+          <ButtonPrimary
+            label={mnemonic ? "See 12-word mnemonic passphrase" : "Generate"}
+            onPress={
+              mnemonic
+                ? () => popup(mnemonic, "Your mnemonic")
+                : this.generateKeyStore
+            }
+          />
+        </View>
+      </View>
+    );
+  }
+
+  renderPersonalData() {
     const { navigation } = this.props;
+    const { mnemonic, sortedJson } = this.state;
+    return (
+      <View>
+        <Text style={styles.Text}>
+          {sortedJson
+            ? "Currently storing one identity"
+            : "No personal data stored"}
+        </Text>
+        <View style={styles.Buttons}>
+          <ButtonPrimary
+            label={sortedJson ? "Edit personal data" : "Add personal data"}
+            onPress={() => navigation.push("DrivingLicense")}
+          />
+        </View>
+        {mnemonic || sortedJson ? (
+          <View>
+            <Text style={styles.Text}>
+              This will clear both the keystore and your data:
+            </Text>
+            <View style={styles.Buttons}>
+              <ButtonPrimary
+                label="Delete all data"
+                onPress={this.deleteEverything}
+              />
+            </View>
+          </View>
+        ) : null}
+      </View>
+    );
+  }
+
+  renderBlockchainStatus() {
+    const { cert, mnemonic, sortedJson } = this.state;
+    return (
+      <View>
+        <Text style={styles.Text}>
+          {cert
+            ? "Your identity is stored on the blockchain:"
+            : "Store the identity on the blockchain:"}
+        </Text>
+        <View style={styles.Buttons}>
+          <ButtonPrimary
+            label={cert ? "View transaction" : "Send to CA"}
+            onPress={cert ? this.viewCert : this.sendToCA}
+            disabled={!mnemonic || !sortedJson}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  render() {
+    const { showSpinner } = this.state;
     return (
       <View style={{ flex: 1 }}>
         <Spinner
-          visible={this.state.showSpinner}
+          visible={showSpinner}
           textContent="Waiting for CA response..."
           textStyle={{ ...styles.Text, color: colors.ulisse, fontSize: 22 }}
           color={colors.primary}
@@ -160,27 +270,9 @@ class MainScreen extends React.Component<NavigationScreenProps> {
           style={styles.Container}
           contentContainerStyle={styles.Container}
         >
-          <Text style={styles.Text}>here's the sorted json:</Text>
-          <Text style={styles.Code}>{this.state.sortedJson}</Text>
-          <Text style={styles.Text}>here's the 12-word mnemonic seed:</Text>
-          <Text style={styles.Code}>{this.state.mnemonic}</Text>
-          <Text style={styles.Text}>
-            ...which was used to generate this address:
-          </Text>
-          <Text style={styles.Code}>{this.state.address}</Text>
-          <Text style={styles.Text}>
-            ...which was used to sign the json above into:
-          </Text>
-          <Text style={styles.Code}>{this.state.signedJson}</Text>
-          <View style={styles.BottomButton}>
-            <ButtonPrimary
-              label="Add/Edit personal data"
-              onPress={() => navigation.push("DrivingLicense")}
-            />
-          </View>
-          <View style={styles.BottomButton}>
-            <ButtonPrimary label="Send to CA" onPress={this.sendToCA} />
-          </View>
+          {this.renderKeyStore()}
+          {this.renderPersonalData()}
+          {this.renderBlockchainStatus()}
         </ScrollView>
       </View>
     );
@@ -192,7 +284,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ulisse,
     padding: 5
   },
-  BottomButton: {
+  Buttons: {
     flex: 1,
     padding: 20
   },

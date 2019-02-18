@@ -5,6 +5,7 @@ import { Linking, SecureStore } from "expo";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import { colors } from "Urbi/utils/colors";
 import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
+import { popup } from "urbi-wallet/util/uiUtils";
 
 class ConsentScreen extends React.Component<NavigationScreenProps> {
   static navigationOptions = {
@@ -33,7 +34,7 @@ class ConsentScreen extends React.Component<NavigationScreenProps> {
   onOkPressed() {
     SecureStore.getItemAsync("cert").then(storedCert => {
       if (!storedCert) {
-        window.alert("You know nothing, Jon Snow");
+        popup("You know nothing, Jon Snow");
       } else {
         const url = `${
           this.state.callback

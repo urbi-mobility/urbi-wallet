@@ -1,7 +1,7 @@
 import * as lightwallet from "eth-lightwallet";
 import { keystore } from "eth-lightwallet";
 
-export const signMsg = (
+const signMsg = (
   ks: keystore,
   pwDerivedKey: Uint8Array,
   msg: string,
@@ -17,10 +17,17 @@ export const signMsg = (
   return lightwallet.signing.concatSig(signature);
 };
 
+export const sign = (keystore: UrbiKeyStore, message: string) => {
+  const { address, lightwalletKeystore, pwDerivedKey } = keystore;
+  return signMsg(lightwalletKeystore, pwDerivedKey, message, address);
+};
+
 export interface UrbiKeyStore {
   lightwalletKeystore: keystore;
   address: string;
   pwDerivedKey: Uint8Array;
+  mnemonic: string;
+  password: string;
 }
 
 export const createKeystore = (mnemonic: string, password: string) =>
@@ -42,9 +49,17 @@ export const createKeystore = (mnemonic: string, password: string) =>
           resolve({
             lightwalletKeystore: ks,
             address: addresses[0],
+            mnemonic,
+            password,
             pwDerivedKey
           });
         });
       }
     );
   });
+
+export const generateNewKeystore = () =>
+  createKeystore(
+    lightwallet.keystore.generateRandomSeed(),
+    "omfg it's a secret"
+  );

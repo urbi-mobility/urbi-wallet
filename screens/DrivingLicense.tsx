@@ -12,8 +12,14 @@ import { UrbiTextInput } from "urbi-wallet/components/UrbiTextInput";
 import ListItemSwitch from "Urbi/components/ListItemSwitch";
 import Label from "Urbi/molecules/content/Label";
 import SectionsDivider from "Urbi/molecules/SectionsDivider";
+import { popup } from "urbi-wallet/util/uiUtils";
 
 const drivingLicenseTypes = ["A", "A1", "B", "C1", "C", "D"];
+const ignoredStateFields = {
+  focused: true,
+  dlLevels: true,
+  initialState: true
+};
 
 class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
   static navigationOptions = {
@@ -22,7 +28,8 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
 
   state = {
     ...testIdentity,
-    focused: "firstName"
+    focused: "firstName",
+    initialState: ""
   };
 
   scroll?: JSX.Element;
@@ -54,15 +61,15 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
       if (stored) {
         this.setState(JSON.parse(stored));
       }
+      this.setState({ initialState: stored || serializeToJson(testIdentity) });
     });
   }
 
   onSubmit() {
     const data: any = { dlLevels: {} };
-    const notStrings = { focused: true, dlLevels: true };
 
     Object.keys(this.state)
-      .filter(k => !(k in notStrings))
+      .filter(k => !(k in ignoredStateFields))
       .forEach(k => {
         const v = (this.state[k] || "").trim();
         if (v) {
@@ -76,9 +83,18 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
       }
     });
 
-    SecureStore.setItemAsync("data", serializeToJson(data))
-      .then(() => window.alert("stored!"))
-      .catch(e => window.alert(`oh no. Oh no no no. ${e}`));
+    const newData = serializeToJson(data);
+
+    SecureStore.setItemAsync("data", newData)
+      .then(() => {
+        if (newData !== this.state.initialState) {
+          popup("data was updated!");
+          this.setState({ initialState: newData });
+        } else {
+          popup("nothing changed");
+        }
+      })
+      .catch(e => popup(`oh no. Oh no no no. ${e}`));
   }
 
   scrollTo(textInput: ReturnType<typeof findNodeHandle>) {
