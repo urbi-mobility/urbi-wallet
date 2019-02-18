@@ -65,7 +65,11 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
     });
   }
 
-  onSubmit() {
+  componentWillUnmount() {
+    this.storeData(this.parseForm());
+  }
+
+  parseForm() {
     const data: any = { dlLevels: {} };
 
     Object.keys(this.state)
@@ -83,9 +87,16 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
       }
     });
 
-    const newData = serializeToJson(data);
+    return serializeToJson(data);
+  }
 
-    SecureStore.setItemAsync("data", newData)
+  storeData(jsonData: string) {
+    return SecureStore.setItemAsync("data", jsonData);
+  }
+
+  onSubmit() {
+    const newData = this.parseForm();
+    this.storeData(newData)
       .then(() => {
         if (newData !== this.state.initialState) {
           popup("data was updated!");

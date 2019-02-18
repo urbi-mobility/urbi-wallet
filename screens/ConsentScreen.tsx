@@ -9,7 +9,7 @@ import { popup } from "urbi-wallet/util/uiUtils";
 
 class ConsentScreen extends React.Component<NavigationScreenProps> {
   static navigationOptions = {
-    title: "Attenzi1! 🧐"
+    title: "Urbi Wallet"
   };
 
   state = {
@@ -32,13 +32,13 @@ class ConsentScreen extends React.Component<NavigationScreenProps> {
   }
 
   onOkPressed() {
-    SecureStore.getItemAsync("cert").then(storedCert => {
-      if (!storedCert) {
-        popup("You know nothing, Jon Snow");
+    SecureStore.getItemAsync("identity").then(storedId => {
+      if (!storedId) {
+        popup("You need to store your ID on your Urbi Wallet first!");
       } else {
         const url = `${
           this.state.callback
-        }?consent=true&payload=${encodeURIComponent(storedCert)}`;
+        }?consent=true&payload=${encodeURIComponent(storedId)}`;
         console.log(url);
         Linking.openURL(url);
       }
@@ -49,7 +49,8 @@ class ConsentScreen extends React.Component<NavigationScreenProps> {
     return (
       <View style={styles.Row}>
         <Text style={styles.Text}>
-          {this.state.provider} wants to steal all your 💰. Is it ok?
+          {this.state.provider} wants to access your personal information. Is it
+          ok?
         </Text>
         <Text style={styles.Text}>
           I will call <Text style={styles.Code}>{this.state.callback}</Text> to

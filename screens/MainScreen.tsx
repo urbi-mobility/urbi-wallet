@@ -16,11 +16,12 @@ import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
 import { serializeToJson } from "urbi-wallet/util/jsonUtils";
 import Spinner from "react-native-loading-spinner-overlay";
-import { popup } from "urbi-wallet/util/uiUtils";
+import { popup, prompt } from "urbi-wallet/util/uiUtils";
 
 const caBaseUrl = "https://urbitunnel.eu.ngrok.io";
 
 type State = {
+  address?: string;
   cert: { txUrl: string } | null;
   error?: any;
   focusListener?: NavigationEventSubscription;
@@ -33,6 +34,7 @@ type State = {
 };
 
 const defaultState = {
+  address: "",
   cert: null,
   error: null,
   keystore: null,
@@ -51,6 +53,7 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
   constructor(props: NavigationScreenProps) {
     super(props);
 
+    this.addOrEditData = this.addOrEditData.bind(this);
     this.sendToCA = this.sendToCA.bind(this);
     this.withNonce = this.withNonce.bind(this);
     this.deleteEverything = this.deleteEverything.bind(this);
@@ -62,6 +65,9 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
   componentDidMount() {
     SecureStore.getItemAsync("cert").then(cert =>
       this.setState({ cert: JSON.parse(cert!) })
+    );
+    SecureStore.getItemAsync("address").then(address =>
+      this.setState({ address: address || "" })
     );
     SecureStore.getItemAsync("data")
       .then(storedData => {
@@ -161,15 +167,17 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
   generateKeyStore() {
     generateNewKeystore()
       .then(urbiKeyStore => {
-        const { mnemonic, password } = urbiKeyStore;
+        const { address, mnemonic, password } = urbiKeyStore;
         SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
-        this.setState({ keystore: urbiKeyStore, mnemonic, password });
+        SecureStore.setItemAsync("address", address);
+        this.setState({ address, keystore: urbiKeyStore, mnemonic, password });
       })
       .catch(e => this.setState({ error: e }));
   }
 
   deleteEverything() {
     this.setState(defaultState, () => {
+      SecureStore.deleteItemAsync("address");
       SecureStore.deleteItemAsync("cert");
       SecureStore.deleteItemAsync("data");
       SecureStore.deleteItemAsync("identity");
@@ -181,8 +189,28 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
     Linking.openURL(this.state.cert!.txUrl);
   }
 
+  addOrEditData() {
+    const { cert } = this.state;
+    if (cert) {
+      prompt(
+        "Your identity is stored on the blockchain. Editing it will invalidate it. Proceed?",
+        "Warning",
+        () => {
+          SecureStore.deleteItemAsync("cert");
+          SecureStore.deleteItemAsync("data");
+          SecureStore.deleteItemAsync("identity");
+          this.setState({ cert: null, sortedJson: null }, () =>
+            this.props.navigation.push("DrivingLicense")
+          );
+        }
+      );
+    } else {
+      this.props.navigation.push("DrivingLicense");
+    }
+  }
+
   renderKeyStore() {
-    const { mnemonic } = this.state;
+    const { address, mnemonic } = this.state;
     return (
       <View>
         <Text style={styles.Text}>
@@ -198,12 +226,17 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
             }
           />
         </View>
+        {address ? (
+          <View>
+            <Text style={styles.Text}>Your address on the blockchain:</Text>
+            <Text style={styles.Code}>{address}</Text>
+          </View>
+        ) : null}
       </View>
     );
   }
 
   renderPersonalData() {
-    const { navigation } = this.props;
     const { mnemonic, sortedJson } = this.state;
     return (
       <View>
@@ -215,7 +248,7 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
         <View style={styles.Buttons}>
           <ButtonPrimary
             label={sortedJson ? "Edit personal data" : "Add personal data"}
-            onPress={() => navigation.push("DrivingLicense")}
+            onPress={this.addOrEditData}
           />
         </View>
         {mnemonic || sortedJson ? (
@@ -299,7 +332,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     lineHeight: 20,
-    margin: 3
+    margin: 3,
+    marginBottom: 20
   },
   picker: {
     height: 100,
