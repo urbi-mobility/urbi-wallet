@@ -6,7 +6,7 @@ import { createAppContainer, createStackNavigator } from "react-navigation";
 import MainScreen from "./screens/MainScreen";
 import ConnectScreen from "./screens/ConnectScreen";
 import ConsentScreen from "./screens/ConsentScreen";
-import { Linking, Font } from "expo";
+import { Linking, Font, AppLoading } from "expo";
 import { colors } from "Urbi/utils/colors";
 import DrivingLicenseScreen from "./screens/DrivingLicense";
 
@@ -40,11 +40,16 @@ const Container = createAppContainer(navigator);
 
 const prefix = Linking.makeUrl("/");
 
-export default class App extends React.Component<{}, { fontsLoaded: boolean }> {
+export default class App extends React.Component<
+  {},
+  { fontsLoaded: boolean; shownSplash: boolean }
+> {
   constructor(props: any) {
     super(props);
-    this.state = { fontsLoaded: false };
+    this.state = { fontsLoaded: false, shownSplash: false };
+    setTimeout(() => this.setState({ shownSplash: true }), 1500);
   }
+
   async componentDidMount() {
     await Font.loadAsync({
       Barlow: require("./assets/fonts/Barlow-Regular.ttf"),
@@ -55,8 +60,10 @@ export default class App extends React.Component<{}, { fontsLoaded: boolean }> {
     });
     this.setState({ fontsLoaded: true });
   }
+
   render() {
-    if (!this.state.fontsLoaded) return null;
+    if (!this.state.fontsLoaded || !this.state.shownSplash)
+      return <AppLoading onError={console.warn} />;
     return <Container uriPrefix={prefix} />;
   }
 }
