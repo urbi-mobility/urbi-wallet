@@ -167,14 +167,25 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
   }
 
   generateKeyStore() {
-    generateNewKeystore()
-      .then(urbiKeyStore => {
-        const { address, mnemonic, password } = urbiKeyStore;
-        SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
-        SecureStore.setItemAsync("address", address);
-        this.setState({ address, keystore: urbiKeyStore, mnemonic, password });
-      })
-      .catch(e => this.setState({ error: e }));
+    this.setState({ spinnerMsg: "Generating keystore..." });
+    setTimeout(
+      () =>
+        generateNewKeystore()
+          .then(urbiKeyStore => {
+            const { address, mnemonic, password } = urbiKeyStore;
+            SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
+            SecureStore.setItemAsync("address", address);
+            this.setState({
+              spinnerMsg: null,
+              address,
+              keystore: urbiKeyStore,
+              mnemonic,
+              password
+            });
+          })
+          .catch(e => this.setState({ error: e, spinnerMsg: null })),
+      250
+    );
   }
 
   deleteEverything() {
