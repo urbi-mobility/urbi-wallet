@@ -28,7 +28,7 @@ type State = {
   keystore?: UrbiKeyStore | null;
   mnemonic?: string;
   password?: string;
-  showSpinner: boolean;
+  spinnerMsg: string | null;
   signedJson?: string;
   sortedJson?: string | null;
 };
@@ -40,7 +40,7 @@ const defaultState = {
   keystore: null,
   mnemonic: "",
   password: "",
-  showSpinner: false,
+  spinnerMsg: null,
   signedJson: "loading...",
   sortedJson: ""
 };
@@ -113,13 +113,14 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
 
   async sendToCA() {
     const { keystore, mnemonic, password } = this.state;
-    this.setState({ showSpinner: true });
     let ks = keystore;
     if (!ks) {
+      this.setState({ spinnerMsg: "Recovering keystore..." });
       ks = await createKeystore(mnemonic!, password!);
     }
     this.setState({ keystore: ks });
     const payload = this.withNonce(this.state.sortedJson!);
+    this.setState({ spinnerMsg: "Signing message..." });
     const signature = sign(ks, payload);
     try {
       const tx = serializeToJson({
@@ -127,13 +128,14 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
         signature,
         payload: JSON.parse(payload)
       });
+      this.setState({ spinnerMsg: "Contacting Certification Authority..." });
       const response = await fetch(`${caBaseUrl}/validate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: tx
       });
 
-      this.setState({ showSpinner: false }, async () => {
+      this.setState({ spinnerMsg: null }, async () => {
         if (response.status === 200) {
           SecureStore.setItemAsync("identity", tx).catch(e =>
             popup(`Couldn't store data for validated transaction. ${e}`)
@@ -159,7 +161,7 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
         }
       });
     } catch (error) {
-      this.setState({ showSpinner: false });
+      this.setState({ spinnerMsg: null });
       console.error(error);
     }
   }
@@ -289,12 +291,12 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
   }
 
   render() {
-    const { showSpinner } = this.state;
+    const { spinnerMsg } = this.state;
     return (
       <View style={{ flex: 1 }}>
         <Spinner
-          visible={showSpinner}
-          textContent="Waiting for CA response..."
+          visible={spinnerMsg !== null}
+          textContent={spinnerMsg || ""}
           textStyle={{ ...styles.Text, color: colors.ulisse, fontSize: 22 }}
           color={colors.primary}
           overlayColor="rgba(0, 0, 0, 0.75)"

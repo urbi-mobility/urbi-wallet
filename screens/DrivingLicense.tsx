@@ -60,6 +60,8 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
     SecureStore.getItemAsync("data").then(stored => {
       if (stored) {
         this.setState(JSON.parse(stored));
+      } else {
+        SecureStore.setItemAsync("data", serializeToJson(testIdentity));
       }
       this.setState({ initialState: stored || serializeToJson(testIdentity) });
     });
