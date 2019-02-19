@@ -1,8 +1,8 @@
 import * as React from "react";
 import "node-libs-react-native/globals";
 import "./globals";
-import { Platform } from "react-native";
 import { createAppContainer, createStackNavigator } from "react-navigation";
+import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import MainScreen from "./screens/MainScreen";
 import ConnectScreen from "./screens/ConnectScreen";
 import ConsentScreen from "./screens/ConsentScreen";
@@ -28,9 +28,7 @@ const navigator = createStackNavigator(
       },
       headerTintColor: colors.ulisse,
       headerTitleStyle: {
-        fontWeight: "normal",
-        fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-        fontSize: 16
+        ...makeTextStyle("title2", colors.ulisse)
       }
     }
   }
