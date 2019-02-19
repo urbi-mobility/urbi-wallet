@@ -16,7 +16,7 @@ import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
 import { serializeToJson } from "urbi-wallet/util/jsonUtils";
 import Spinner from "react-native-loading-spinner-overlay";
-import { popup, prompt } from "urbi-wallet/util/uiUtils";
+import { popup, prompt, popupWithCopy } from "urbi-wallet/util/uiUtils";
 
 const caBaseUrl = "https://urbitunnel.eu.ngrok.io";
 
@@ -223,7 +223,7 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
             label={mnemonic ? "See 12-word mnemonic passphrase" : "Generate"}
             onPress={
               mnemonic
-                ? () => popup(mnemonic, "Your mnemonic")
+                ? () => popupWithCopy(mnemonic, "Your mnemonic")
                 : this.generateKeyStore
             }
           />
@@ -231,7 +231,9 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
         {address ? (
           <View>
             <Text style={styles.Text}>Your address on the blockchain:</Text>
-            <Text style={styles.Code}>{address}</Text>
+            <Text style={styles.Code} selectable>
+              {address}
+            </Text>
           </View>
         ) : null}
       </View>
