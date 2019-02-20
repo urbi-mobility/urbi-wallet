@@ -16,9 +16,14 @@ import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
 import { serializeToJson } from "urbi-wallet/util/jsonUtils";
 import Spinner from "react-native-loading-spinner-overlay";
-import { popup, prompt, popupWithCopy } from "urbi-wallet/util/uiUtils";
+import {
+  popup,
+  prompt,
+  popupWithCopy,
+  withSafeOverlay
+} from "urbi-wallet/util/uiUtils";
 
-const caBaseUrl = "https://urbitunnel.eu.ngrok.io";
+const caBaseUrl = "https://token.urbi.co";
 
 type State = {
   address?: string;
@@ -111,80 +116,97 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
     });
   }
 
-  async sendToCA() {
-    const { keystore, mnemonic, password } = this.state;
-    let ks = keystore;
-    if (!ks) {
-      this.setState({ spinnerMsg: "Recovering keystore..." });
-      ks = await createKeystore(mnemonic!, password!);
+  regenerateKeystore() {
+    const { mnemonic, password } = this.state;
+    this.setState({ spinnerMsg: "Recovering keystore..." });
+
+    withSafeOverlay(async () => {
+      const keystore = await createKeystore(mnemonic!, password!);
+      this.setState({ keystore }, this.sendToCA);
+    });
+  }
+
+  sendToCA() {
+    const { keystore } = this.state;
+    if (!keystore) {
+      // this will call sendToCA back once the keystore has been recovered
+      this.regenerateKeystore();
+      return;
     }
-    this.setState({ keystore: ks });
     const payload = this.withNonce(this.state.sortedJson!);
     this.setState({ spinnerMsg: "Signing message..." });
-    const signature = sign(ks, payload);
-    try {
-      const tx = serializeToJson({
-        address: ks.address,
-        signature,
-        payload: JSON.parse(payload)
-      });
-      this.setState({ spinnerMsg: "Contacting Certification Authority..." });
-      const response = await fetch(`${caBaseUrl}/validate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: tx
-      });
 
-      this.setState({ spinnerMsg: null }, async () => {
-        if (response.status === 200) {
-          SecureStore.setItemAsync("identity", tx).catch(e =>
-            popup(`Couldn't store data for validated transaction. ${e}`)
-          );
+    withSafeOverlay(async () => {
+      const signature = sign(keystore, payload);
+      try {
+        const tx = serializeToJson({
+          address: keystore.address,
+          signature,
+          payload: JSON.parse(payload)
+        });
 
-          SecureStore.setItemAsync("data", this.state.sortedJson!).catch(e =>
-            popup(`oh no. Oh no no no. Couldn't store signed data. ${e}`)
-          );
+        this.setState({
+          spinnerMsg: "Contacting Cert. Authority..."
+        });
 
-          const cert = await response.json();
+        const response = await fetch(`${caBaseUrl}/validate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: tx
+        });
 
-          this.setState({ cert });
+        this.setState({ spinnerMsg: null }, async () => {
+          if (response.status === 200) {
+            SecureStore.setItemAsync("identity", tx).catch(e =>
+              popup(`Couldn't store data for validated transaction. ${e}`)
+            );
 
-          SecureStore.setItemAsync("cert", serializeToJson(cert)).catch(e =>
-            popup(`Couldn't store validate transaction. ${e}`)
-          );
+            SecureStore.setItemAsync("data", this.state.sortedJson!).catch(e =>
+              popup(`oh no. Oh no no no. Couldn't store signed data. ${e}`)
+            );
 
-          popup(JSON.stringify(cert), "Response from the CA");
-        } else {
-          popup(
-            `The CA server replied with a ${response.status} status code :(`
-          );
-        }
-      });
-    } catch (error) {
-      this.setState({ spinnerMsg: null });
-      console.error(error);
-    }
+            const cert = await response.json();
+
+            this.setState({ cert });
+
+            SecureStore.setItemAsync("cert", serializeToJson(cert)).catch(e =>
+              popup(`Couldn't store validate transaction. ${e}`)
+            );
+
+            popup(JSON.stringify(cert), "Response from the CA");
+          } else {
+            popup(
+              `The CA server replied with a ${response.status} status code :(`
+            );
+          }
+        });
+      } catch (error) {
+        this.setState({ spinnerMsg: null });
+        console.error(error);
+      }
+    });
   }
 
   generateKeyStore() {
-    this.setState({ spinnerMsg: "Generating keystore..." });
-    setTimeout(
-      () =>
-        generateNewKeystore()
-          .then(urbiKeyStore => {
-            const { address, mnemonic, password } = urbiKeyStore;
-            SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
-            SecureStore.setItemAsync("address", address);
-            this.setState({
-              spinnerMsg: null,
-              address,
-              keystore: urbiKeyStore,
-              mnemonic,
-              password
-            });
-          })
-          .catch(e => this.setState({ error: e, spinnerMsg: null })),
-      250
+    this.setState({
+      spinnerMsg: "Generating keystore..."
+    });
+
+    withSafeOverlay(() =>
+      generateNewKeystore()
+        .then(urbiKeyStore => {
+          const { address, mnemonic, password } = urbiKeyStore;
+          SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
+          SecureStore.setItemAsync("address", address);
+          this.setState({
+            spinnerMsg: null,
+            address,
+            keystore: urbiKeyStore,
+            mnemonic,
+            password
+          });
+        })
+        .catch(e => this.setState({ error: e, spinnerMsg: null }))
     );
   }
 
@@ -310,7 +332,7 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
         <Spinner
           visible={spinnerMsg !== null}
           textContent={spinnerMsg || ""}
-          textStyle={{ ...styles.Text, color: colors.ulisse, fontSize: 22 }}
+          textStyle={styles.Spinner}
           color={colors.primary}
           overlayColor="rgba(0, 0, 0, 0.75)"
         />
@@ -340,6 +362,11 @@ const styles = StyleSheet.create({
     ...makeTextStyle("title", colors.secondary),
     textAlign: "center",
     padding: 6
+  },
+  Spinner: {
+    ...makeTextStyle("title", colors.ulisse),
+    textAlign: "center",
+    padding: 10
   },
   Code: {
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",

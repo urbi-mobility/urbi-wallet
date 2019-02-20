@@ -48,7 +48,7 @@ class ConsentScreen extends React.Component<NavigationScreenProps> {
   render() {
     return (
       <View style={styles.Row}>
-        <Text style={styles.Text}>
+        <Text style={styles.TextBig}>
           {this.state.provider} wants to access your personal information. Is it
           ok?
         </Text>
@@ -76,7 +76,12 @@ const styles = StyleSheet.create({
   Text: {
     ...makeTextStyle("body", colors.secondary),
     textAlign: "center",
-    padding: 6
+    padding: 10
+  },
+  TextBig: {
+    ...makeTextStyle("title", colors.secondary),
+    textAlign: "center",
+    padding: 10
   },
   Code: {
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",

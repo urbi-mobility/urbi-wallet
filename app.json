@@ -19,6 +19,7 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
+      "bundleIdentifier": "co.urbi.wallet",
       "supportsTablet": true
     },
     "android": {

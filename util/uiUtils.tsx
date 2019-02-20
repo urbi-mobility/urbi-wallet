@@ -29,3 +29,9 @@ export const popupWithCopy = (message: string, title: string) => {
     100
   );
 };
+
+export const withSafeOverlay = (runnable: () => any) => {
+  // https://github.com/joinspontaneous/react-native-loading-spinner-overlay#recommended-implementation
+  // you had one job... 🤦
+  setTimeout(runnable, 250);
+};
