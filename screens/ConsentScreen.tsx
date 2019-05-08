@@ -1,7 +1,6 @@
 import * as React from "react";
 import { NavigationScreenProps } from "react-navigation";
 import { Platform, StyleSheet, Text, View } from "react-native";
-import { Linking, SecureStore } from "expo";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import { colors } from "Urbi/utils/colors";
 import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
@@ -32,17 +31,18 @@ class ConsentScreen extends React.Component<NavigationScreenProps> {
   }
 
   onOkPressed() {
-    SecureStore.getItemAsync("identity").then(storedId => {
-      if (!storedId) {
-        popup("You need to store your ID on your Urbi Wallet first!");
-      } else {
-        const url = `${
-          this.state.callback
-        }?consent=true&payload=${encodeURIComponent(storedId)}`;
-        console.log(url);
-        Linking.openURL(url);
-      }
-    });
+    // TODO rewrite without expo
+    // SecureStore.getItemAsync("identity").then(storedId => {
+    //   if (!storedId) {
+    //     popup("You need to store your ID on your Urbi Wallet first!");
+    //   } else {
+    //     const url = `${
+    //       this.state.callback
+    //     }?consent=true&payload=${encodeURIComponent(storedId)}`;
+    //     console.log(url);
+    //     Linking.openURL(url);
+    //   }
+    // });
   }
 
   render() {

@@ -3,7 +3,6 @@ import { NavigationScreenProps } from "react-navigation";
 import { StyleSheet, View, findNodeHandle } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { serializeToJson } from "urbi-wallet/util/jsonUtils";
-import { SecureStore } from "expo";
 import testIdentity from "urbi-wallet/assets/testIdentity.json";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import { colors } from "Urbi/utils/colors";
@@ -57,14 +56,15 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
   }
 
   componentDidMount() {
-    SecureStore.getItemAsync("data").then(stored => {
-      if (stored) {
-        this.setState(JSON.parse(stored));
-      } else {
-        SecureStore.setItemAsync("data", serializeToJson(testIdentity));
-      }
-      this.setState({ initialState: stored || serializeToJson(testIdentity) });
-    });
+    // TODO rewrite without expo
+    // SecureStore.getItemAsync("data").then(stored => {
+    //   if (stored) {
+    //     this.setState(JSON.parse(stored));
+    //   } else {
+    //     SecureStore.setItemAsync("data", serializeToJson(testIdentity));
+    //   }
+    //   this.setState({ initialState: stored || serializeToJson(testIdentity) });
+    // });
   }
 
   componentWillUnmount() {
@@ -93,7 +93,9 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
   }
 
   storeData(jsonData: string) {
-    return SecureStore.setItemAsync("data", jsonData);
+    // TODO rewrite without expo
+    return new Promise(() => null);
+    // return SecureStore.setItemAsync("data", jsonData);
   }
 
   onSubmit() {

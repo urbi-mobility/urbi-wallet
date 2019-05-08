@@ -1,22 +1,33 @@
-export const fonts = {
-  barlow: {
-    fontFamily: 'Barlow',
-    fontWeight: 'normal',
-    fontStyle: 'normal',
+import { human, sanFranciscoWeights } from 'react-native-typography';
+import { UrbiFontStyles } from './textStyles';
+
+export const fontStyles: UrbiFontStyles = {
+  hero: {
+    ...human.largeTitleObject,
+    ...sanFranciscoWeights.semibold,
   },
-  barlowMedium: {
-    fontFamily: 'Barlow',
-    fontWeight: '500',
-    fontStyle: 'normal',
+  title2: human.title1Object,
+  title1: {
+    ...human.title3Object,
+    ...sanFranciscoWeights.semibold,
   },
-  barlowBold: {
-    fontFamily: 'Barlow',
-    fontWeight: 'bold',
-    fontStyle: 'normal',
+  titleBold: {
+    ...human.headlineObject,
+    ...sanFranciscoWeights.semibold,
   },
-  barlowExtraBold: {
-    fontFamily: 'Barlow',
-    fontWeight: '800',
-    fontStyle: 'normal',
+  title: human.bodyObject,
+  body: human.subheadObject,
+  button: {
+    ...human.subheadObject,
+    ...sanFranciscoWeights.semibold,
+  },
+  small: {
+    ...human.footnoteObject,
+    ...sanFranciscoWeights.semibold,
+  },
+  micro: {
+    ...human.caption2Object,
+    ...sanFranciscoWeights.semibold,
+    textTransform: 'uppercase',
   },
 };

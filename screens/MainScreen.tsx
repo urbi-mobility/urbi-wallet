@@ -10,7 +10,6 @@ import {
   UrbiKeyStore,
   createKeystore
 } from "urbi-wallet/util/cryptoUtils";
-import { SecureStore, Linking } from "expo";
 import { colors } from "Urbi/utils/colors";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import ButtonPrimary from "Urbi/molecules/buttons/ButtonPrimary";
@@ -68,40 +67,38 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
   }
 
   componentDidMount() {
-    SecureStore.getItemAsync("cert").then(cert =>
-      this.setState({ cert: JSON.parse(cert!) })
-    );
-    SecureStore.getItemAsync("address").then(address =>
-      this.setState({ address: address || "" })
-    );
-    SecureStore.getItemAsync("data")
-      .then(storedData => {
-        this.setState({ sortedJson: storedData });
-
-        SecureStore.getItemAsync("mnemonic").then(mnemonicAndPassword => {
-          if (mnemonicAndPassword) {
-            const split = mnemonicAndPassword.split(":");
-            const mnemonic = split[0];
-            const password = split.splice(1).join(":");
-            this.setState({ mnemonic, password });
-          }
-
-          // reload data from SecureStorage every time the page is displayed anew
-          this.setState({
-            focusListener: this.props.navigation.addListener(
-              "willFocus",
-              () => {
-                SecureStore.getItemAsync("data").then(sortedJson =>
-                  this.setState({ sortedJson })
-                );
-              }
-            )
-          });
-        });
-      })
-      .catch(err => {
-        throw err;
-      });
+    // SecureStore.getItemAsync("cert").then(cert =>
+    //   this.setState({ cert: JSON.parse(cert!) })
+    // );
+    // SecureStore.getItemAsync("address").then(address =>
+    //   this.setState({ address: address || "" })
+    // );
+    // SecureStore.getItemAsync("data")
+    //   .then(storedData => {
+    //     this.setState({ sortedJson: storedData });
+    //     SecureStore.getItemAsync("mnemonic").then(mnemonicAndPassword => {
+    //       if (mnemonicAndPassword) {
+    //         const split = mnemonicAndPassword.split(":");
+    //         const mnemonic = split[0];
+    //         const password = split.splice(1).join(":");
+    //         this.setState({ mnemonic, password });
+    //       }
+    //       // reload data from SecureStorage every time the page is displayed anew
+    //       this.setState({
+    //         focusListener: this.props.navigation.addListener(
+    //           "willFocus",
+    //           () => {
+    //             SecureStore.getItemAsync("data").then(sortedJson =>
+    //               this.setState({ sortedJson })
+    //             );
+    //           }
+    //         )
+    //       });
+    //     });
+    //   })
+    //   .catch(err => {
+    //     throw err;
+    //   });
   }
 
   componentWillUnmount() {
@@ -157,21 +154,21 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
 
         this.setState({ spinnerMsg: null }, async () => {
           if (response.status === 200) {
-            SecureStore.setItemAsync("identity", tx).catch(e =>
-              popup(`Couldn't store data for validated transaction. ${e}`)
-            );
+            // SecureStore.setItemAsync("identity", tx).catch(e =>
+            //   popup(`Couldn't store data for validated transaction. ${e}`)
+            // );
 
-            SecureStore.setItemAsync("data", this.state.sortedJson!).catch(e =>
-              popup(`oh no. Oh no no no. Couldn't store signed data. ${e}`)
-            );
+            // SecureStore.setItemAsync("data", this.state.sortedJson!).catch(e =>
+            //   popup(`oh no. Oh no no no. Couldn't store signed data. ${e}`)
+            // );
 
             const cert = await response.json();
 
             this.setState({ cert });
 
-            SecureStore.setItemAsync("cert", serializeToJson(cert)).catch(e =>
-              popup(`Couldn't store validate transaction. ${e}`)
-            );
+            // SecureStore.setItemAsync("cert", serializeToJson(cert)).catch(e =>
+            //   popup(`Couldn't store validate transaction. ${e}`)
+            // );
 
             popup(JSON.stringify(cert), "Response from the CA");
           } else {
@@ -196,8 +193,8 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
       generateNewKeystore()
         .then(urbiKeyStore => {
           const { address, mnemonic, password } = urbiKeyStore;
-          SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
-          SecureStore.setItemAsync("address", address);
+          // SecureStore.setItemAsync("mnemonic", `${mnemonic}:${password}`);
+          // SecureStore.setItemAsync("address", address);
           this.setState({
             spinnerMsg: null,
             address,
@@ -212,16 +209,16 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
 
   deleteEverything() {
     this.setState(defaultState, () => {
-      SecureStore.deleteItemAsync("address");
-      SecureStore.deleteItemAsync("cert");
-      SecureStore.deleteItemAsync("data");
-      SecureStore.deleteItemAsync("identity");
-      SecureStore.deleteItemAsync("mnemonic");
+      // SecureStore.deleteItemAsync("address");
+      // SecureStore.deleteItemAsync("cert");
+      // SecureStore.deleteItemAsync("data");
+      // SecureStore.deleteItemAsync("identity");
+      // SecureStore.deleteItemAsync("mnemonic");
     });
   }
 
   viewCert() {
-    Linking.openURL(this.state.cert!.txUrl);
+    // Linking.openURL(this.state.cert!.txUrl);
   }
 
   addOrEditData() {
@@ -231,9 +228,9 @@ class MainScreen extends React.Component<NavigationScreenProps, State> {
         "Your identity is stored on the blockchain. Editing it will invalidate it. Proceed?",
         "Warning",
         () => {
-          SecureStore.deleteItemAsync("cert");
-          SecureStore.deleteItemAsync("data");
-          SecureStore.deleteItemAsync("identity");
+          // SecureStore.deleteItemAsync("cert");
+          // SecureStore.deleteItemAsync("data");
+          // SecureStore.deleteItemAsync("identity");
           this.setState({ cert: null, sortedJson: null }, () =>
             this.props.navigation.push("DrivingLicense")
           );

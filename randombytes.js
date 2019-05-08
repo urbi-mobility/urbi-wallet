@@ -1,27 +1,28 @@
-const getRandomValues = (byteArray) => {
+const getRandomValues = byteArray => {
   for (let i = 0; i < byteArray.length; i++) {
-      byteArray[i] = Math.floor(256 * Math.random());
+    byteArray[i] = Math.floor(256 * Math.random());
   }
-}
+};
 const randomBytes = (size, cb) => {
   // phantomjs needs to throw
-  if (size > 65536) throw new Error('requested too many random bytes')
+  if (size > 65536) throw new Error("requested too many random bytes");
   // in case browserify  isn't using the Uint8Array version
-  var rawBytes = new global.Uint8Array(size)
+  var rawBytes = new global.Uint8Array(size);
 
   // This will not work in older browsers.
   // See https://developer.mozilla.org/en-US/docs/Web/API/window.crypto.getRandomValues
-  if (size > 0) {  // getRandomValues fails on IE if size == 0
-      getRandomValues(rawBytes)
+  if (size > 0) {
+    // getRandomValues fails on IE if size == 0
+    getRandomValues(rawBytes);
   }
   // XXX: phantomjs doesn't like a buffer being passed here
-  var bytes = Buffer.from(rawBytes.buffer)
+  var bytes = Buffer.from(rawBytes.buffer);
 
   if (cb) {
-      cb(bytes);
+    cb(bytes);
   }
-  return bytes
-}
+  return bytes;
+};
 
 // these 2 lines are simply to make brorand work (used by eth-lightwallet)
 global.self = global;
@@ -29,7 +30,6 @@ global.self.crypto = { getRandomValues };
 
 const crypto = require("crypto");
 window.crypto = crypto;
-crypto.getRandomValues = getRandomValues;
 global.self.crypto = crypto;
 
 module.exports = randomBytes;

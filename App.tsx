@@ -1,12 +1,11 @@
 import * as React from "react";
-import "node-libs-react-native/globals";
 import "./globals";
+import "node-libs-react-native/globals";
 import { createAppContainer, createStackNavigator } from "react-navigation";
 import { textStyle as makeTextStyle } from "Urbi/utils/textStyles";
 import MainScreen from "./screens/MainScreen";
 import ConnectScreen from "./screens/ConnectScreen";
 import ConsentScreen from "./screens/ConsentScreen";
-import { Linking, Font, AppLoading } from "expo";
 import { colors } from "Urbi/utils/colors";
 import DrivingLicenseScreen from "./screens/DrivingLicense";
 
@@ -36,32 +35,10 @@ const navigator = createStackNavigator(
 
 const Container = createAppContainer(navigator);
 
-const prefix = Linking.makeUrl("/");
+const prefix = "urbiwallet://";
 
-export default class App extends React.Component<
-  {},
-  { fontsLoaded: boolean; shownSplash: boolean }
-> {
-  constructor(props: any) {
-    super(props);
-    this.state = { fontsLoaded: false, shownSplash: false };
-    setTimeout(() => this.setState({ shownSplash: true }), 1500);
-  }
-
-  async componentDidMount() {
-    await Font.loadAsync({
-      Barlow: require("./assets/fonts/Barlow-Regular.ttf"),
-      "Barlow-Regular": require("./assets/fonts/Barlow-Regular.ttf"),
-      "Barlow-Medium": require("./assets/fonts/Barlow-Medium.ttf"),
-      "Barlow-Bold": require("./assets/fonts/Barlow-Bold.ttf"),
-      "Barlow-ExtraBold": require("./assets/fonts/Barlow-ExtraBold.ttf")
-    });
-    this.setState({ fontsLoaded: true });
-  }
-
+export default class App extends React.Component<void> {
   render() {
-    if (!this.state.fontsLoaded || !this.state.shownSplash)
-      return <AppLoading onError={console.warn} />;
     return <Container uriPrefix={prefix} />;
   }
 }
