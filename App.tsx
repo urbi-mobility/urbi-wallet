@@ -8,6 +8,7 @@ import ConnectScreen from "./screens/ConnectScreen";
 import ConsentScreen from "./screens/ConsentScreen";
 import { colors } from "Urbi/utils/colors";
 import DrivingLicenseScreen from "./screens/DrivingLicense";
+import { Platform } from "react-native";
 
 const navigator = createStackNavigator(
   {
@@ -35,7 +36,7 @@ const navigator = createStackNavigator(
 
 const Container = createAppContainer(navigator);
 
-const prefix = "urbiwallet://";
+const prefix = `urbiwallet://${Platform.OS === "android" ? "wallet/" : ""}`;
 
 export default class App extends React.Component<void> {
   render() {

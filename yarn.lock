@@ -5234,6 +5234,11 @@ react-native-keyboard-aware-scroll-view@^0.8.0:
     prop-types "^15.6.2"
     react-native-iphone-x-helper "^1.0.3"
 
+react-native-keychain@^3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/react-native-keychain/-/react-native-keychain-3.1.2.tgz#777078f411f33e1c85c946d7fb4c8b91d0790ba1"
+  integrity sha512-+bWR9r5u+RLT211SRoqO3EWplSOl50Hy/EDLCNxgl7nGjDtmj7hH9yoefxCvWb5rV6jByrK3UakIwI7k0Lrcuw==
+
 react-native-loading-spinner-overlay@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/react-native-loading-spinner-overlay/-/react-native-loading-spinner-overlay-1.0.1.tgz#07f85a072b6f7d05b8749668cd626df4cc330347"

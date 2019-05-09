@@ -12,6 +12,7 @@ import ListItemSwitch from "Urbi/components/ListItemSwitch";
 import Label from "Urbi/molecules/content/Label";
 import SectionsDivider from "Urbi/molecules/SectionsDivider";
 import { popup } from "urbi-wallet/util/uiUtils";
+import SecureStore from "urbi-wallet/util/SecureStore";
 
 const drivingLicenseTypes = ["A", "A1", "B", "C1", "C", "D"];
 const ignoredStateFields = {
@@ -56,15 +57,14 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
   }
 
   componentDidMount() {
-    // TODO rewrite without expo
-    // SecureStore.getItemAsync("data").then(stored => {
-    //   if (stored) {
-    //     this.setState(JSON.parse(stored));
-    //   } else {
-    //     SecureStore.setItemAsync("data", serializeToJson(testIdentity));
-    //   }
-    //   this.setState({ initialState: stored || serializeToJson(testIdentity) });
-    // });
+    SecureStore.getItemAsync("data").then(stored => {
+      if (stored) {
+        this.setState(JSON.parse(stored));
+      } else {
+        SecureStore.setItemAsync("data", serializeToJson(testIdentity));
+      }
+      this.setState({ initialState: stored || serializeToJson(testIdentity) });
+    });
   }
 
   componentWillUnmount() {
@@ -93,9 +93,7 @@ class DrivingLicenseScreen extends React.Component<NavigationScreenProps> {
   }
 
   storeData(jsonData: string) {
-    // TODO rewrite without expo
-    return new Promise(() => null);
-    // return SecureStore.setItemAsync("data", jsonData);
+    return SecureStore.setItemAsync("data", jsonData);
   }
 
   onSubmit() {

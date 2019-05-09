@@ -19,6 +19,7 @@
     "react-native-crypto": "^2.1.2",
     "react-native-gesture-handler": "^1.2.1",
     "react-native-keyboard-aware-scroll-view": "^0.8.0",
+    "react-native-keychain": "^3.1.2",
     "react-native-loading-spinner-overlay": "^1.0.1",
     "react-native-randombytes": "^3.5.2",
     "react-native-typography": "^1.4.0",
